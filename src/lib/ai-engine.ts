@@ -254,18 +254,58 @@ Return ONLY a JSON array. Example:
     }
   }
 
-  // Replace any remaining image placeholders with business photos
+  // Smart image replacement — only replace images that represent the BUSINESS/FACILITY
+  // Keep images that represent PEOPLE (trainers, reviewers, team members)
   if (businessData.photos.length > 0) {
-    const unsplashRegex = /https:\/\/images\.unsplash\.com\/[^"'\s)]+/g;
     let photoIndex = 0;
-    result = result.replace(unsplashRegex, () => {
-      const photo = businessData.photos[photoIndex % businessData.photos.length];
-      photoIndex++;
-      return photo;
-    });
-    if (photoIndex > 0) {
-      console.log("[ai-engine] Replaced", photoIndex, "Unsplash images with business photos");
+    let replacedCount = 0;
+
+    // Find all img tags with their surrounding HTML context (200 chars before)
+    const imgTagRegex = /<img[^>]*src=["'](https:\/\/images\.unsplash\.com\/[^"'\s)]+)["'][^>]*>/gi;
+    let imgMatch;
+    const resultForImgs = result;
+
+    while ((imgMatch = imgTagRegex.exec(resultForImgs)) !== null) {
+      const fullTag = imgMatch[0];
+      const url = imgMatch[1];
+      const position = imgMatch.index;
+
+      // Get surrounding context (200 chars before and after the img tag)
+      const contextBefore = resultForImgs.slice(Math.max(0, position - 300), position).toLowerCase();
+      const contextAfter = resultForImgs.slice(position, position + fullTag.length + 300).toLowerCase();
+      const context = contextBefore + " " + contextAfter;
+
+      // SKIP if this image is in a people-related section
+      const isPeopleSection = /trainer|coach|instructor|staff|team|member|review|testimonial|client|customer|said|quote|avatar|profile|headshot|portrait|ceo|founder|manager/i.test(context);
+
+      // SKIP if the image is small (avatar-sized)
+      const isSmallImage = /rounded-full|w-[0-9]{1,2}\b|h-[0-9]{1,2}\b|w-1[0-6]|h-1[0-6]|max-w-\[?[0-9]{2,3}px/i.test(fullTag);
+
+      // REPLACE if it's a hero, gallery, about, facility, or general section
+      const isFacilitySection = /hero|banner|gallery|about|facility|equipment|class|schedule|pricing|feature|service|background|main|cover|full/i.test(context);
+
+      if (isPeopleSection || isSmallImage) {
+        // Keep the original image — it's a person photo
+        console.log("[ai-engine] Kept image (people section):", url.slice(0, 60));
+      } else if (photoIndex < businessData.photos.length) {
+        result = result.split(url).join(businessData.photos[photoIndex]);
+        photoIndex++;
+        replacedCount++;
+      }
     }
+
+    // Also replace Unsplash URLs used as CSS background-image (hero/banner)
+    const bgRegex = /url\(["']?(https:\/\/images\.unsplash\.com\/[^"'\s)]+)["']?\)/gi;
+    let bgMatch;
+    while ((bgMatch = bgRegex.exec(resultForImgs)) !== null) {
+      if (photoIndex < businessData.photos.length) {
+        result = result.split(bgMatch[1]).join(businessData.photos[photoIndex % businessData.photos.length]);
+        photoIndex++;
+        replacedCount++;
+      }
+    }
+
+    console.log("[ai-engine] Replaced", replacedCount, "facility images, kept people photos");
   }
 
   console.log("[ai-engine] Applied", appliedCount, "AI replacements");

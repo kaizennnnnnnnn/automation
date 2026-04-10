@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
+import { PreviewRenderer } from "./preview-renderer";
 
 export default async function PreviewPage({
   params,
@@ -19,7 +20,9 @@ export default async function PreviewPage({
     notFound();
   }
 
-  // Inject the SiteForge banner before closing </body>
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+
+  // Inject banner and a script that makes anchor links work inside the iframe
   const banner = `
 <div id="siteforge-banner" style="
   position: fixed;
@@ -40,30 +43,19 @@ export default async function PreviewPage({
     Built with <strong style="color: white;">SiteForge</strong>
   </span>
   <span style="color: #475569;">|</span>
-  <a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/signup"
+  <a href="${appUrl}/signup"
      style="color: #60a5fa; font-size: 13px; text-decoration: none; font-weight: 500;"
-     target="_blank">
+     target="_top">
     Create your free website preview &rarr;
   </a>
 </div>`;
 
-  let fullHtml = preview.html_snapshot;
+  let fullHtml = preview.html_snapshot || "";
   if (fullHtml.includes("</body>")) {
     fullHtml = fullHtml.replace("</body>", `${banner}</body>`);
   } else {
     fullHtml = fullHtml + banner;
   }
 
-  return (
-    <html>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body
-        dangerouslySetInnerHTML={{ __html: fullHtml }}
-        suppressHydrationWarning
-      />
-    </html>
-  );
+  return <PreviewRenderer html={fullHtml} />;
 }

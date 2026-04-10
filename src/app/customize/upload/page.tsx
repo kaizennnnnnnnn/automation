@@ -407,39 +407,35 @@ export default function UploadCustomizePage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel */}
-        <div className="w-[400px] bg-white border-r overflow-y-auto shrink-0">
-          <div className="p-6 space-y-6">
+        <div className="w-[380px] bg-white border-r overflow-y-auto shrink-0">
+          <div className="p-4 space-y-4">
             {/* Step 1: Upload template */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="w-5 h-5 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                   1
                 </div>
-                <h2 className="text-lg font-semibold">Upload your template</h2>
+                <h2 className="text-sm font-semibold">Upload your template</h2>
               </div>
-              <p className="text-sm text-muted-foreground mb-3 ml-8">
-                Upload an HTML file or a ZIP folder with your website project.
-              </p>
               {fileName ? (
-                <div className="border-2 border-green-300 bg-green-50 rounded-lg p-4 text-center">
-                  <FolderOpen className="w-8 h-8 mx-auto text-green-600 mb-2" />
-                  <p className="text-sm font-medium text-green-700">
-                    Loaded: {fileName}
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    {Object.keys(allFiles).length} files
-                  </p>
+                <div className="border border-green-300 bg-green-50 rounded-lg p-2 flex items-center gap-3 mt-2">
+                  <FolderOpen className="w-5 h-5 text-green-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-700 truncate">
+                      {fileName}
+                    </p>
+                  </div>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="mt-2"
+                    className="text-xs h-7 px-2"
                     onClick={() => {
                       setHtmlContent("");
                       setAllFiles({});
                       setFileName("");
                     }}
                   >
-                    Change template
+                    Change
                   </Button>
                 </div>
               ) : (
@@ -496,28 +492,25 @@ export default function UploadCustomizePage() {
                 <Separator />
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="w-5 h-5 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                       2
                     </div>
-                    <h2 className="text-lg font-semibold">
+                    <h2 className="text-sm font-semibold">
                       Paste Google Maps link
                     </h2>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-3 ml-8">
-                    Find the prospect&apos;s business on Google Maps and paste
-                    the URL.
-                  </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-2">
                     <Input
                       value={googleUrl}
                       onChange={(e) => setGoogleUrl(e.target.value)}
                       placeholder="https://maps.google.com/..."
-                      className="flex-1"
+                      className="flex-1 h-9 text-sm"
                     />
                     <Button
                       onClick={handleScrape}
                       disabled={scraping || !googleUrl.trim()}
-                      className="bg-[#1B4FD8] hover:bg-[#1640b0]"
+                      className="bg-[#1B4FD8] hover:bg-[#1640b0] h-9 w-9 p-0"
+                      size="icon"
                     >
                       {scraping ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -533,40 +526,26 @@ export default function UploadCustomizePage() {
             {/* Scraped data */}
             {businessData && (
               <>
-                <Card className="border-green-200 bg-green-50">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      <span className="font-semibold text-green-800">
-                        Business found!
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      <p><strong>Name:</strong> {businessData.name}</p>
-                      {businessData.phone && (
-                        <p><strong>Phone:</strong> {businessData.phone}</p>
-                      )}
-                      <p><strong>Address:</strong> {businessData.address}</p>
-                      {businessData.photos.length > 0 && (
-                        <p className="text-green-700">
-                          {businessData.photos.length} photos found
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="border border-green-200 bg-green-50 rounded-lg p-3 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-semibold text-green-800 text-sm">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {businessData.name}
+                  </div>
+                  {businessData.phone && <p className="text-green-700">{businessData.phone}</p>}
+                  <p className="text-green-700 truncate">{businessData.address}</p>
+                  {businessData.photos.length > 0 && (
+                    <p className="text-green-600">{businessData.photos.length} photos</p>
+                  )}
+                </div>
 
                 {/* Step 3: Generate */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 bg-[#6366F1] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 bg-[#6366F1] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                       3
                     </div>
-                    <h2 className="text-lg font-semibold">Generate with AI</h2>
+                    <h2 className="text-sm font-semibold">Generate with AI</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-3 ml-8">
-                    AI will apply all business data and photos to your template.
-                  </p>
                   <Button
                     onClick={handleGenerate}
                     className="w-full bg-gradient-to-r from-[#1B4FD8] to-[#6366F1] hover:opacity-90 h-12 text-base"
@@ -648,7 +627,7 @@ export default function UploadCustomizePage() {
                 srcDoc={generatedHtml}
                 className="w-full h-[calc(100vh-8rem)] border-0"
                 title="Generated preview"
-                sandbox="allow-same-origin allow-scripts allow-popups"
+                sandbox="allow-same-origin allow-scripts"
               />
             ) : htmlContent ? (
               <iframe
@@ -656,7 +635,7 @@ export default function UploadCustomizePage() {
                 srcDoc={htmlContent}
                 className="w-full h-[calc(100vh-8rem)] border-0"
                 title="Template preview"
-                sandbox="allow-same-origin allow-scripts allow-popups"
+                sandbox="allow-same-origin allow-scripts"
               />
             ) : (
               <div className="h-[calc(100vh-8rem)] flex items-center justify-center text-muted-foreground">

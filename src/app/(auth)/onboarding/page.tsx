@@ -12,13 +12,13 @@ export default function OnboardingPage() {
   const [state, formAction, pending] = useActionState(completeOnboarding, null);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-[#1B4FD8] rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-lg flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold text-slate-900">SiteForge</span>
+          <span className="text-2xl font-bold text-foreground">SiteForge</span>
         </div>
 
         <Card>
@@ -49,7 +49,7 @@ export default function OnboardingPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#1B4FD8] hover:bg-[#1640b0]"
+                className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
                 disabled={pending}
               >
                 {pending ? "Setting up..." : "Get started"}

@@ -7,40 +7,25 @@ import { Zap } from "lucide-react";
 
 export function Navbar({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
-
   return (
-    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#1B4FD8] rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
+          <div className="w-7 h-7 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-lg flex items-center justify-center">
+            <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-bold text-slate-900">SiteForge</span>
+          <span className="text-base font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">SiteForge</span>
         </Link>
-
-        <nav className="flex items-center gap-6">
-          <Link
-            href="/marketplace"
-            className={`text-sm font-medium transition-colors ${
-              pathname === "/marketplace"
-                ? "text-[#1B4FD8]"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Marketplace
+        <nav className="flex items-center gap-4">
+          <Link href="/marketplace" className={`text-sm font-medium transition-colors ${pathname === "/marketplace" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            Templates
           </Link>
           {isLoggedIn ? (
-            <Link href="/dashboard">
-              <Button className="bg-[#1B4FD8] hover:bg-[#1640b0]">Dashboard</Button>
-            </Link>
+            <Link href="/dashboard"><Button size="sm" className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] h-8">Dashboard</Button></Link>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="outline">Log in</Button>
-              </Link>
-              <Link href="/signup">
-                <Button className="bg-[#1B4FD8] hover:bg-[#1640b0]">Sign up</Button>
-              </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login"><Button variant="ghost" size="sm" className="h-8 text-muted-foreground">Log in</Button></Link>
+              <Link href="/signup"><Button size="sm" className="h-8 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]">Sign up</Button></Link>
             </div>
           )}
         </nav>
