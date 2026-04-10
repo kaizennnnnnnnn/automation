@@ -132,7 +132,7 @@ export default function CustomizePage({
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Template not found</h1>
           <Button onClick={() => router.push("/marketplace")}>
@@ -144,34 +144,34 @@ export default function CustomizePage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
-      <header className="bg-white border-b px-4 h-14 flex items-center justify-between shrink-0 z-10">
+      <header className="bg-card border-b border-border px-4 h-14 flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push(`/marketplace/${templateId}`)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-slate-900"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
           <Separator orientation="vertical" className="h-6" />
-          <h1 className="font-semibold text-slate-900">
+          <h1 className="font-semibold text-foreground">
             Customize: {template.name}
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center border rounded-lg">
+          <div className="flex items-center border border-border border-border rounded-lg">
             <button
               onClick={() => setViewMode("desktop")}
-              className={`p-2 ${viewMode === "desktop" ? "bg-slate-100" : ""}`}
+              className={`p-2 ${viewMode === "desktop" ? "bg-background" : ""}`}
             >
               <Monitor className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("mobile")}
-              className={`p-2 ${viewMode === "mobile" ? "bg-slate-100" : ""}`}
+              className={`p-2 ${viewMode === "mobile" ? "bg-background" : ""}`}
             >
               <Smartphone className="w-4 h-4" />
             </button>
@@ -181,12 +181,12 @@ export default function CustomizePage({
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel */}
-        <div className="w-[400px] bg-white border-r overflow-y-auto shrink-0">
+        <div className="w-[400px] bg-card border-r border-border overflow-y-auto shrink-0">
           <div className="p-6 space-y-6">
             {/* Step 1: Google Maps URL */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
                   1
                 </div>
                 <h2 className="text-lg font-semibold">Paste Google Maps link</h2>
@@ -204,7 +204,7 @@ export default function CustomizePage({
                 <Button
                   onClick={handleScrape}
                   disabled={scraping || !googleUrl.trim()}
-                  className="bg-[#1B4FD8] hover:bg-[#1640b0]"
+                  className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
                 >
                   {scraping ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -219,11 +219,11 @@ export default function CustomizePage({
             {businessData && (
               <>
                 <Separator />
-                <Card className="border-green-200 bg-green-50">
+                <Card className="border-green-700 bg-green-900/20">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      <span className="font-semibold text-green-800">
+                      <MapPin className="w-4 h-4 text-green-400" />
+                      <span className="font-semibold text-green-400">
                         Business found!
                       </span>
                     </div>
@@ -247,7 +247,7 @@ export default function CustomizePage({
                       )}
                       {businessData.hours.length > 0 && (
                         <details className="mt-2">
-                          <summary className="cursor-pointer text-green-700 font-medium">
+                          <summary className="cursor-pointer text-green-400 font-medium">
                             Opening hours
                           </summary>
                           <ul className="mt-1 ml-2 space-y-0.5 text-xs">
@@ -258,7 +258,7 @@ export default function CustomizePage({
                         </details>
                       )}
                       {businessData.photos.length > 0 && (
-                        <p className="text-green-700">
+                        <p className="text-green-400">
                           {businessData.photos.length} photos found
                         </p>
                       )}
@@ -282,7 +282,7 @@ export default function CustomizePage({
                   </p>
                   <Button
                     onClick={handleGenerate}
-                    className="w-full bg-gradient-to-r from-[#1B4FD8] to-[#6366F1] hover:opacity-90 h-12 text-base"
+                    className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-12 text-base"
                     disabled={generating}
                   >
                     {generating ? (
@@ -313,13 +313,13 @@ export default function CustomizePage({
                     <h2 className="text-lg font-semibold">Preview ready!</h2>
                   </div>
 
-                  <Card className="border-green-200 bg-green-50">
+                  <Card className="border-green-700 bg-green-900/20">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex gap-2">
                         <Input
                           value={generatedUrl}
                           readOnly
-                          className="text-xs bg-white"
+                          className="text-xs bg-card"
                         />
                         <Button
                           variant="outline"
@@ -327,7 +327,7 @@ export default function CustomizePage({
                           onClick={copyToClipboard}
                         >
                           {copied ? (
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-4 h-4 text-green-400" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -352,9 +352,9 @@ export default function CustomizePage({
         </div>
 
         {/* Right panel — Preview */}
-        <div className="flex-1 p-6 flex items-start justify-center overflow-auto bg-[#e5e7eb]">
+        <div className="flex-1 p-6 flex items-start justify-center overflow-auto bg-secondary/50">
           <div
-            className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all ${
+            className={`bg-card shadow-2xl rounded-lg overflow-hidden transition-all ${
               viewMode === "mobile" ? "w-[375px]" : "w-full max-w-[1200px]"
             }`}
           >

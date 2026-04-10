@@ -23,7 +23,7 @@ export default function TemplateDetailPage({
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
           <h1 className="text-2xl font-bold mb-4">Template not found</h1>
@@ -42,18 +42,18 @@ export default function TemplateDetailPage({
     .replace(/\{\{PHONE\}\}/g, "(555) 123-4567")
     .replace(/\{\{ADDRESS\}\}/g, "123 Main Street, City, ST 12345")
     .replace(/\{\{HOURS\}\}/g, "Mon-Sat: 9am - 9pm")
-    .replace(/\{\{COLOR_PRIMARY\}\}/g, "#1B4FD8")
+    .replace(/\{\{COLOR_PRIMARY\}\}/g, "#6366F1")
     .replace(/\{\{HERO_IMAGE\}\}/g, "https://placehold.co/1920x1080/1B4FD8/white?text=Hero+Image")
     .replace(/\{\{ABOUT_TEXT\}\}/g, "We are a passionate team dedicated to providing the best service in our industry. With years of experience and a commitment to excellence, we ensure every client receives personalized attention.");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => router.push("/marketplace")}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-slate-900 mb-6"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Marketplace
@@ -81,7 +81,7 @@ export default function TemplateDetailPage({
                   </Button>
                 </div>
               ) : (
-                <div className="relative aspect-[16/10] bg-slate-100">
+                <div className="relative aspect-[16/10] bg-secondary">
                   {template.preview_image_url ? (
                     <img
                       src={template.preview_image_url}
@@ -89,14 +89,14 @@ export default function TemplateDetailPage({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1B4FD8]/10 to-[#6366F1]/10">
-                      <span className="text-6xl font-bold text-[#1B4FD8]/20">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10">
+                      <span className="text-6xl font-bold text-primary/20">
                         {template.name.charAt(0)}
                       </span>
                     </div>
                   )}
                   <Button
-                    className="absolute bottom-4 right-4 bg-white/90 text-slate-900 hover:bg-white"
+                    className="absolute bottom-4 right-4 bg-card/90 text-foreground hover:bg-card"
                     onClick={() => setShowPreview(true)}
                   >
                     <Eye className="w-4 h-4 mr-2" />
@@ -112,7 +112,7 @@ export default function TemplateDetailPage({
             <Card>
               <CardContent className="p-6">
                 <Badge className="mb-3">{template.niche}</Badge>
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                <h1 className="text-2xl font-bold text-foreground mb-2">
                   {template.name}
                 </h1>
                 {template.designer && (
@@ -134,12 +134,12 @@ export default function TemplateDetailPage({
 
                 <Separator className="my-4" />
 
-                <div className="text-3xl font-bold text-[#1B4FD8] mb-6">
+                <div className="text-3xl font-bold text-primary mb-6">
                   {template.price === 0 ? "Free" : `€${template.price}`}
                 </div>
 
                 <Button
-                  className="w-full bg-[#1B4FD8] hover:bg-[#1640b0] h-12 text-base"
+                  className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-12 text-base"
                   onClick={() => router.push(`/customize/${template.id}`)}
                 >
                   <Palette className="w-5 h-5 mr-2" />

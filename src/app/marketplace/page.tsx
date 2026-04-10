@@ -62,11 +62,11 @@ export default function MarketplacePage() {
   }, [search, selectedNiche, sortBy]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#1B4FD8] to-[#6366F1] text-white py-16 px-4">
+      <div className="bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">Template Marketplace</h1>
           <p className="text-lg opacity-90 mb-8">
@@ -74,12 +74,12 @@ export default function MarketplacePage() {
             them in seconds for any prospect.
           </p>
           <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Search templates by name or niche..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-12 h-12 bg-white text-slate-900 border-0 text-base"
+              className="pl-12 h-12 bg-card text-foreground border-border text-base"
             />
           </div>
         </div>
@@ -93,8 +93,8 @@ export default function MarketplacePage() {
               variant={selectedNiche === "all" ? "default" : "outline"}
               className={`cursor-pointer px-3 py-1.5 text-sm ${
                 selectedNiche === "all"
-                  ? "bg-[#1B4FD8] hover:bg-[#1640b0]"
-                  : "hover:bg-slate-100"
+                  ? "bg-primary hover:bg-primary/90"
+                  : "hover:bg-secondary"
               }`}
               onClick={() => setSelectedNiche("all")}
             >
@@ -106,8 +106,8 @@ export default function MarketplacePage() {
                 variant={selectedNiche === niche ? "default" : "outline"}
                 className={`cursor-pointer px-3 py-1.5 text-sm ${
                   selectedNiche === niche
-                    ? "bg-[#1B4FD8] hover:bg-[#1640b0]"
-                    : "hover:bg-slate-100"
+                    ? "bg-primary hover:bg-primary/90"
+                    : "hover:bg-secondary"
                 }`}
                 onClick={() => setSelectedNiche(niche)}
               >
@@ -117,7 +117,7 @@ export default function MarketplacePage() {
           </div>
 
           <Select value={sortBy} onValueChange={(v) => v && setSortBy(v)}>
-            <SelectTrigger className="w-[180px] bg-white">
+            <SelectTrigger className="w-[180px] bg-card border-border">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -134,7 +134,7 @@ export default function MarketplacePage() {
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               No templates found
             </h3>
             <p className="text-muted-foreground">

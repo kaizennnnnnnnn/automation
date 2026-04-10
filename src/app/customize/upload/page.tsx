@@ -370,34 +370,34 @@ export default function UploadCustomizePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-secondary flex flex-col">
       {/* Top bar */}
-      <header className="bg-white border-b px-4 h-14 flex items-center justify-between shrink-0 z-10">
+      <header className="bg-card border-b border-border px-4 h-14 flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-slate-900"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
           <Separator orientation="vertical" className="h-6" />
-          <h1 className="font-semibold text-slate-900">
+          <h1 className="font-semibold text-foreground">
             Use Your Own Template
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center border rounded-lg">
+          <div className="flex items-center border border-border rounded-lg">
             <button
               onClick={() => setViewMode("desktop")}
-              className={`p-2 ${viewMode === "desktop" ? "bg-slate-100" : ""}`}
+              className={`p-2 ${viewMode === "desktop" ? "bg-secondary" : ""}`}
             >
               <Monitor className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("mobile")}
-              className={`p-2 ${viewMode === "mobile" ? "bg-slate-100" : ""}`}
+              className={`p-2 ${viewMode === "mobile" ? "bg-secondary" : ""}`}
             >
               <Smartphone className="w-4 h-4" />
             </button>
@@ -407,21 +407,21 @@ export default function UploadCustomizePage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel */}
-        <div className="w-[380px] bg-white border-r overflow-y-auto shrink-0">
+        <div className="w-[380px] bg-card border-r border-border overflow-y-auto shrink-0">
           <div className="p-4 space-y-4">
             {/* Step 1: Upload template */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-5 h-5 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                <div className="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                   1
                 </div>
                 <h2 className="text-sm font-semibold">Upload your template</h2>
               </div>
               {fileName ? (
                 <div className="border border-green-300 bg-green-50 rounded-lg p-2 flex items-center gap-3 mt-2">
-                  <FolderOpen className="w-5 h-5 text-green-600 shrink-0" />
+                  <FolderOpen className="w-5 h-5 text-green-400 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-green-700 truncate">
+                    <p className="text-sm font-medium text-green-400 truncate">
                       {fileName}
                     </p>
                   </div>
@@ -441,8 +441,8 @@ export default function UploadCustomizePage() {
               ) : (
                 <div className="space-y-3">
                   {/* Folder upload */}
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-[#1B4FD8] hover:bg-blue-50/50 transition-colors">
-                    <FolderOpen className="w-8 h-8 mx-auto text-[#1B4FD8] mb-2" />
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary hover:bg-primary/5 transition-colors">
+                    <FolderOpen className="w-8 h-8 mx-auto text-primary mb-2" />
                     <p className="text-sm font-medium mb-1">
                       Upload project folder
                     </p>
@@ -492,7 +492,7 @@ export default function UploadCustomizePage() {
                 <Separator />
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-5 h-5 bg-[#1B4FD8] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                       2
                     </div>
                     <h2 className="text-sm font-semibold">
@@ -509,7 +509,7 @@ export default function UploadCustomizePage() {
                     <Button
                       onClick={handleScrape}
                       disabled={scraping || !googleUrl.trim()}
-                      className="bg-[#1B4FD8] hover:bg-[#1640b0] h-9 w-9 p-0"
+                      className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-9 w-9 p-0"
                       size="icon"
                     >
                       {scraping ? (
@@ -526,15 +526,15 @@ export default function UploadCustomizePage() {
             {/* Scraped data */}
             {businessData && (
               <>
-                <div className="border border-green-200 bg-green-50 rounded-lg p-3 text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-semibold text-green-800 text-sm">
+                <div className="border border-green-700 bg-green-900/20 rounded-lg p-3 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-semibold text-green-400 text-sm">
                     <MapPin className="w-3.5 h-3.5" />
                     {businessData.name}
                   </div>
-                  {businessData.phone && <p className="text-green-700">{businessData.phone}</p>}
-                  <p className="text-green-700 truncate">{businessData.address}</p>
+                  {businessData.phone && <p className="text-green-400">{businessData.phone}</p>}
+                  <p className="text-green-400 truncate">{businessData.address}</p>
                   {businessData.photos.length > 0 && (
-                    <p className="text-green-600">{businessData.photos.length} photos</p>
+                    <p className="text-green-400">{businessData.photos.length} photos</p>
                   )}
                 </div>
 
@@ -548,7 +548,7 @@ export default function UploadCustomizePage() {
                   </div>
                   <Button
                     onClick={handleGenerate}
-                    className="w-full bg-gradient-to-r from-[#1B4FD8] to-[#6366F1] hover:opacity-90 h-12 text-base"
+                    className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-12 text-base"
                     disabled={generating}
                   >
                     {generating ? (
@@ -571,11 +571,11 @@ export default function UploadCustomizePage() {
             {generatedUrl && (
               <>
                 <Separator />
-                <Card className="border-green-200 bg-green-50">
+                <Card className="border-green-700 bg-green-900/20">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="font-semibold text-green-800">
+                      <Check className="w-4 h-4 text-green-400" />
+                      <span className="font-semibold text-green-400">
                         Preview ready!
                       </span>
                     </div>
@@ -583,7 +583,7 @@ export default function UploadCustomizePage() {
                       <Input
                         value={generatedUrl}
                         readOnly
-                        className="text-xs bg-white"
+                        className="text-xs"
                       />
                       <Button
                         variant="outline"
@@ -591,7 +591,7 @@ export default function UploadCustomizePage() {
                         onClick={copyToClipboard}
                       >
                         {copied ? (
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-4 h-4 text-green-400" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
@@ -615,9 +615,9 @@ export default function UploadCustomizePage() {
         </div>
 
         {/* Right panel */}
-        <div className="flex-1 p-6 flex items-start justify-center overflow-auto bg-[#e5e7eb]">
+        <div className="flex-1 p-6 flex items-start justify-center overflow-auto bg-secondary/50">
           <div
-            className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all ${
+            className={`bg-card shadow-2xl rounded-lg overflow-hidden transition-all ${
               viewMode === "mobile" ? "w-[375px]" : "w-full max-w-[1200px]"
             }`}
           >

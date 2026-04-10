@@ -12,8 +12,8 @@ interface TemplateCardProps {
 export function TemplateCard({ template, showDesigner = true }: TemplateCardProps) {
   return (
     <Link href={`/marketplace/${template.id}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-slate-200 hover:border-[#1B4FD8]/30">
-        <div className="aspect-[16/10] bg-slate-100 relative overflow-hidden">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border hover:border-primary/30">
+        <div className="aspect-[16/10] bg-secondary relative overflow-hidden">
           {template.preview_image_url ? (
             <img
               src={template.preview_image_url}
@@ -21,18 +21,18 @@ export function TemplateCard({ template, showDesigner = true }: TemplateCardProp
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1B4FD8]/10 to-[#6366F1]/10">
-              <span className="text-4xl font-bold text-[#1B4FD8]/20">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10">
+              <span className="text-4xl font-bold text-primary/20">
                 {template.name.charAt(0)}
               </span>
             </div>
           )}
-          <Badge className="absolute top-3 left-3 bg-white/90 text-slate-700 hover:bg-white">
+          <Badge className="absolute top-3 left-3 bg-card/90 text-foreground hover:bg-card">
             {template.niche}
           </Badge>
         </div>
         <CardContent className="p-4">
-          <h3 className="font-semibold text-slate-900 group-hover:text-[#1B4FD8] transition-colors">
+          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
             {template.name}
           </h3>
           {showDesigner && template.designer && (
@@ -51,7 +51,7 @@ export function TemplateCard({ template, showDesigner = true }: TemplateCardProp
                 {template.downloads}
               </span>
             </div>
-            <span className="font-semibold text-[#1B4FD8]">
+            <span className="font-semibold text-primary">
               {template.price === 0 ? "Free" : `€${template.price}`}
             </span>
           </div>

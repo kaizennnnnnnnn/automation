@@ -207,14 +207,14 @@ export default function DesignerDashboardPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Templates</h1>
+          <h1 className="text-2xl font-bold text-foreground">My Templates</h1>
           <p className="text-muted-foreground mt-1">
             Upload and manage your website templates
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger
-            render={<Button className="bg-[#1B4FD8] hover:bg-[#1640b0]" />}
+            render={<Button className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90" />}
           >
             <Plus className="w-4 h-4 mr-2" />
             Upload Template
@@ -301,7 +301,7 @@ export default function DesignerDashboardPage() {
                   />
                 </div>
                 {htmlContent && (
-                  <p className="text-sm text-green-600">
+                  <p className="text-sm text-green-400">
                     HTML file loaded ({htmlContent.length} characters)
                   </p>
                 )}
@@ -322,9 +322,9 @@ export default function DesignerDashboardPage() {
                     {detectedFields.map((field, i) => (
                       <div
                         key={field.key}
-                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-background rounded-lg"
                       >
-                        <code className="text-xs bg-slate-200 px-2 py-1 rounded font-mono">
+                        <code className="text-xs bg-secondary px-2 py-1 rounded font-mono">
                           {`{{${field.key}}}`}
                         </code>
                         <Input
@@ -373,7 +373,7 @@ export default function DesignerDashboardPage() {
 
               <Button
                 onClick={handleSubmit}
-                className="w-full bg-[#1B4FD8] hover:bg-[#1640b0]"
+                className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -398,7 +398,7 @@ export default function DesignerDashboardPage() {
                 <p className="text-3xl font-bold mt-1">{templates.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FileCode className="w-6 h-6 text-[#1B4FD8]" />
+                <FileCode className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -411,7 +411,7 @@ export default function DesignerDashboardPage() {
                 <p className="text-3xl font-bold mt-1">{totalDownloads}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Download className="w-6 h-6 text-green-600" />
+                <Download className="w-6 h-6 text-green-400" />
               </div>
             </div>
           </CardContent>
@@ -447,7 +447,7 @@ export default function DesignerDashboardPage() {
               Upload your first template to start earning from the marketplace.
             </p>
             <Button
-              className="bg-[#1B4FD8] hover:bg-[#1640b0]"
+              className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
               onClick={() => setDialogOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />

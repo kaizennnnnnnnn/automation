@@ -96,7 +96,7 @@ export default function EarningsPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Earnings</h1>
+        <h1 className="text-2xl font-bold text-foreground">Earnings</h1>
         <p className="text-muted-foreground mt-1">
           Track your template sales and payouts
         </p>
@@ -114,7 +114,7 @@ export default function EarningsPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-green-600" />
+                <DollarSign className="w-6 h-6 text-green-400" />
               </div>
             </div>
           </CardContent>
@@ -144,7 +144,7 @@ export default function EarningsPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-[#1B4FD8]" />
+                <CreditCard className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -185,7 +185,7 @@ export default function EarningsPage() {
                       {item.templateName}
                     </TableCell>
                     <TableCell>{item.sales}</TableCell>
-                    <TableCell className="text-right font-semibold text-green-600">
+                    <TableCell className="text-right font-semibold text-green-400">
                       €{item.revenue.toFixed(2)}
                     </TableCell>
                   </TableRow>

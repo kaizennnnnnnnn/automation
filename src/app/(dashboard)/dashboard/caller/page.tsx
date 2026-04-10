@@ -134,7 +134,7 @@ export default function CallerDashboardPage() {
           BUSINESS_NAME: row["business name"] || row["name"] || "",
           PHONE: row["phone"] || "",
           ADDRESS: `${row["address"] || ""} ${row["city"] || ""}`.trim(),
-          COLOR_PRIMARY: "#1B4FD8",
+          COLOR_PRIMARY: "#6366F1",
           TAGLINE: "Welcome to our website",
           HERO_IMAGE:
             "https://placehold.co/1920x1080/1B4FD8/white?text=Hero+Image",
@@ -191,7 +191,7 @@ export default function CallerDashboardPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Previews</h1>
+          <h1 className="text-2xl font-bold text-foreground">My Previews</h1>
           <p className="text-muted-foreground mt-1">
             Manage your generated preview links for prospects
           </p>
@@ -233,7 +233,7 @@ export default function CallerDashboardPage() {
                 {bulkResults && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-green-600">
+                      <p className="text-sm font-semibold text-green-400">
                         {bulkResults.length} previews generated
                       </p>
                       <Button
@@ -245,7 +245,7 @@ export default function CallerDashboardPage() {
                         Download CSV
                       </Button>
                     </div>
-                    <div className="max-h-60 overflow-y-auto border rounded-lg">
+                    <div className="max-h-60 overflow-y-auto border border-border rounded-lg">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -282,7 +282,7 @@ export default function CallerDashboardPage() {
             </DialogContent>
           </Dialog>
           <Button
-            className="bg-[#1B4FD8] hover:bg-[#1640b0]"
+            className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
             onClick={() => router.push("/marketplace")}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -301,7 +301,7 @@ export default function CallerDashboardPage() {
                 <p className="text-3xl font-bold mt-1">{previews.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Link2 className="w-6 h-6 text-[#1B4FD8]" />
+                <Link2 className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -331,7 +331,7 @@ export default function CallerDashboardPage() {
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Eye className="w-6 h-6 text-green-600" />
+                <Eye className="w-6 h-6 text-green-400" />
               </div>
             </div>
           </CardContent>
@@ -353,7 +353,7 @@ export default function CallerDashboardPage() {
               clients.
             </p>
             <Button
-              className="bg-[#1B4FD8] hover:bg-[#1640b0]"
+              className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
               onClick={() => router.push("/marketplace")}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -396,7 +396,7 @@ export default function CallerDashboardPage() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-green-600 border-green-200"
+                        className="text-green-400 border-green-200"
                       >
                         Active
                       </Badge>

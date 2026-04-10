@@ -29,7 +29,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar fullName={profile.full_name || profile.display_name || "User"} />
-      <main className="flex-1 bg-slate-50 overflow-auto">{children}</main>
+      <main className="flex-1 bg-background overflow-auto">{children}</main>
     </div>
   );
 }
