@@ -77,6 +77,11 @@ export default function DashboardPage() {
   // GitHub state
   const [githubUrl, setGithubUrl] = useState("");
   const [loadingGithub, setLoadingGithub] = useState(false);
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [githubRepos, setGithubRepos] = useState<{ id: number; name: string; full_name: string; description: string | null; private: boolean; default_branch: string; updated_at: string; language: string | null }[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [showRepoList, setShowRepoList] = useState(false);
+  const [repoSearch, setRepoSearch] = useState("");
 
   // Scrape state
   const [googleUrl, setGoogleUrl] = useState("");
@@ -96,7 +101,62 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadPreviews();
+    checkGithubConnection();
   }, []);
+
+  async function checkGithubConnection() {
+    try {
+      const res = await fetch("/api/github/repos");
+      if (res.ok) {
+        const repos = await res.json();
+        setGithubConnected(true);
+        setGithubRepos(repos);
+      }
+    } catch {
+      // Not connected
+    }
+  }
+
+  async function loadGithubRepos() {
+    setLoadingRepos(true);
+    try {
+      const res = await fetch("/api/github/repos");
+      if (res.ok) {
+        setGithubRepos(await res.json());
+        setGithubConnected(true);
+      } else {
+        setGithubConnected(false);
+        toast.error("GitHub connection expired. Please reconnect.");
+      }
+    } catch {
+      toast.error("Failed to load repos");
+    } finally {
+      setLoadingRepos(false);
+    }
+  }
+
+  async function handleRepoSelect(repo: { full_name: string; default_branch: string }) {
+    const [owner, repoName] = repo.full_name.split("/");
+    setLoadingGithub(true);
+    setShowRepoList(false);
+    try {
+      const res = await fetch("/api/github/contents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owner, repo: repoName, branch: repo.default_branch }),
+      });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error || "Failed to import"); return; }
+      setHtmlContent(data.html);
+      setAllFiles(data.files);
+      setFileName(data.fileName);
+      toast.success(`Imported ${repo.full_name}`);
+    } catch {
+      toast.error("Failed to import from GitHub");
+    } finally {
+      setLoadingGithub(false);
+    }
+  }
 
   async function loadPreviews() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -494,27 +554,86 @@ export default function DashboardPage() {
                     </label>
 
                     {/* GitHub import */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border">
-                      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                        <GitBranch className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <Input
-                          value={githubUrl}
-                          onChange={(e) => setGithubUrl(e.target.value)}
-                          placeholder="github.com/user/repo"
-                          className="h-8 text-xs bg-transparent border-0 p-0 focus-visible:ring-0"
-                        />
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        disabled={loadingGithub || !githubUrl.trim()}
-                        onClick={handleGithubImport}
-                      >
-                        {loadingGithub ? <Loader2 className="w-3 h-3 animate-spin" /> : "Import"}
-                      </Button>
+                    <div className="relative">
+                      {githubConnected ? (
+                        <button
+                          onClick={() => { setShowRepoList(!showRepoList); if (!showRepoList) loadGithubRepos(); }}
+                          className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 w-full text-left transition-all group"
+                          disabled={loadingGithub}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            {loadingGithub ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : <GitBranch className="w-4 h-4 text-primary" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{loadingGithub ? "Importing..." : "Import from GitHub"}</p>
+                            <p className="text-[11px] text-muted-foreground">Browse your repositories</p>
+                          </div>
+                        </button>
+                      ) : (
+                        <a
+                          href="/api/github/auth"
+                          className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 w-full text-left transition-all group"
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary/10">
+                            <GitBranch className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">Connect GitHub</p>
+                            <p className="text-[11px] text-muted-foreground">Sign in to browse repos</p>
+                          </div>
+                        </a>
+                      )}
+
+                      {/* Repo dropdown */}
+                      {showRepoList && githubConnected && (
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-xl z-20 max-h-[300px] overflow-hidden flex flex-col">
+                          <div className="p-2 border-b border-border">
+                            <Input
+                              value={repoSearch}
+                              onChange={(e) => setRepoSearch(e.target.value)}
+                              placeholder="Search repos..."
+                              className="h-8 text-xs"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="overflow-y-auto flex-1">
+                            {loadingRepos ? (
+                              <div className="flex items-center justify-center py-6">
+                                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : (
+                              githubRepos
+                                .filter((r) => !repoSearch || r.name.toLowerCase().includes(repoSearch.toLowerCase()))
+                                .map((repo) => (
+                                  <button
+                                    key={repo.id}
+                                    onClick={() => handleRepoSelect(repo)}
+                                    className="flex items-start gap-3 px-3 py-2.5 w-full text-left hover:bg-secondary/50 transition-colors border-b border-border/50 last:border-0"
+                                  >
+                                    <GitBranch className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{repo.name}</p>
+                                      {repo.description && (
+                                        <p className="text-[11px] text-muted-foreground truncate">{repo.description}</p>
+                                      )}
+                                      <div className="flex items-center gap-2 mt-0.5">
+                                        {repo.language && (
+                                          <span className="text-[10px] text-muted-foreground">{repo.language}</span>
+                                        )}
+                                        {repo.private && (
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">private</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))
+                            )}
+                            {!loadingRepos && githubRepos.filter((r) => !repoSearch || r.name.toLowerCase().includes(repoSearch.toLowerCase())).length === 0 && (
+                              <p className="text-sm text-muted-foreground text-center py-4">No repos found</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
