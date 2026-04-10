@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code");
+  const requestUrl = new URL(request.url);
+  const origin = process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin;
+  const code = requestUrl.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?github_error=no_code`);
+    return NextResponse.redirect(`${origin}/dashboard?github_error=no_code`);
   }
 
   // Exchange code for access token
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   const tokenData = await tokenRes.json();
 
   if (!tokenData.access_token) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?github_error=token_failed`);
+    return NextResponse.redirect(`${origin}/dashboard?github_error=token_failed`);
   }
 
   // Get current user
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`);
+    return NextResponse.redirect(`${origin}/login`);
   }
 
   // Store GitHub token in profiles
@@ -43,5 +44,5 @@ export async function GET(request: Request) {
     .update({ github_token: tokenData.access_token })
     .eq("user_id", user.id);
 
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?github=connected`);
+  return NextResponse.redirect(`${origin}/dashboard?github=connected`);
 }
