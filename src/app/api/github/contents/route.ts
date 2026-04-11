@@ -22,8 +22,10 @@ export async function POST(request: Request) {
   const { owner, repo, branch, path = "" } = await request.json();
   const token = profile.github_token;
 
+  // Raw URL base for serving files directly from GitHub
+  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
+
   try {
-    // Fetch repo contents
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
     const res = await fetch(apiUrl, {
       headers: {
@@ -41,18 +43,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not a directory" }, { status: 400 });
     }
 
-    // Fetch all file contents (HTML, CSS, JS, images, etc.)
     const textExtensions = [".html", ".htm", ".css", ".js", ".json", ".txt", ".svg"];
-    const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"];
-    const files: Record<string, string> = {};
+    const mediaExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".avif", ".mp4", ".webm", ".ogg", ".mov", ".pdf", ".woff", ".woff2", ".ttf", ".eot"];
+
+    const textFiles: Record<string, string> = {};
+    const mediaFiles: Record<string, string> = {}; // path -> raw GitHub URL
     let mainHtml = "";
 
     async function fetchDir(dirItems: { name: string; type: string; download_url: string | null; path: string }[], prefix: string) {
       for (const item of dirItems) {
-        const ext = "." + item.name.split(".").pop()?.toLowerCase();
+        const ext = "." + (item.name.split(".").pop()?.toLowerCase() || "");
 
         if (item.type === "dir") {
-          // Fetch subdirectory contents
           const subRes = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/contents/${item.path}?ref=${branch}`,
             { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } }
@@ -68,24 +70,14 @@ export async function POST(request: Request) {
 
           if (textExtensions.includes(ext)) {
             const fileRes = await fetch(item.download_url);
-            const content = await fileRes.text();
-            files[filePath] = content;
+            textFiles[filePath] = await fileRes.text();
 
             if ((item.name === "index.html" || item.name === "index.htm") && !prefix) {
-              mainHtml = content;
+              mainHtml = textFiles[filePath];
             }
-          } else if (imageExtensions.includes(ext)) {
-            const fileRes = await fetch(item.download_url);
-            const buffer = await fileRes.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString("base64");
-            const mime =
-              ext === ".png" ? "image/png" :
-              ext === ".svg" ? "image/svg+xml" :
-              ext === ".gif" ? "image/gif" :
-              ext === ".webp" ? "image/webp" :
-              ext === ".ico" ? "image/x-icon" :
-              "image/jpeg";
-            files[filePath] = `data:${mime};base64,${base64}`;
+          } else if (mediaExtensions.includes(ext)) {
+            // Use raw GitHub URL instead of base64 — faster, no size limit
+            mediaFiles[filePath] = `${rawBase}/${item.path}`;
           }
         }
       }
@@ -93,47 +85,154 @@ export async function POST(request: Request) {
 
     await fetchDir(items, "");
 
-    // If no index.html found at root, look for any .html file
+    // Fallback: find any .html if no index.html at root
     if (!mainHtml) {
-      const htmlFile = Object.entries(files).find(
+      const htmlFile = Object.entries(textFiles).find(
         ([k]) => k.endsWith(".html") || k.endsWith(".htm")
       );
-      if (htmlFile) {
-        mainHtml = htmlFile[1];
-      }
+      if (htmlFile) mainHtml = htmlFile[1];
     }
 
     if (!mainHtml) {
       return NextResponse.json({ error: "No HTML file found in repository" }, { status: 400 });
     }
 
-    // Inline CSS and resolve relative paths
+    // --- Process the HTML ---
     let processed = mainHtml;
-    for (const [filePath, content] of Object.entries(files)) {
-      if (filePath.endsWith(".css")) {
-        const linkPattern = new RegExp(
-          `<link[^>]*href=["'](?:\\.?\\/)?${filePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["'][^>]*>`,
-          "gi"
-        );
-        processed = processed.replace(linkPattern, `<style>${content}</style>`);
-      }
 
-      if (content.startsWith("data:")) {
-        const escaped = filePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        processed = processed.replace(
-          new RegExp(`(?:src|href)=["'](?:\\.?\\/)?${escaped}["']`, "gi"),
-          (match) => match.replace(new RegExp(`(?:\\.?\\/)?${escaped}`), content)
-        );
+    // 1. Inline CSS files
+    for (const [filePath, content] of Object.entries(textFiles)) {
+      if (!filePath.endsWith(".css")) continue;
+      const cssFileName = filePath.split("/").pop()!;
+
+      // Also resolve url() references inside CSS to raw GitHub URLs
+      let resolvedCss = content;
+      const cssDir = filePath.includes("/") ? filePath.substring(0, filePath.lastIndexOf("/")) : "";
+
+      // Replace url(...) references in CSS
+      resolvedCss = resolvedCss.replace(/url\(["']?([^"')]+)["']?\)/gi, (_match, ref: string) => {
+        if (ref.startsWith("data:") || ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("//")) {
+          return `url(${ref})`;
+        }
+        // Resolve relative path
+        const resolved = resolvePath(cssDir, ref);
+        const rawUrl = mediaFiles[resolved] || textFiles[resolved] ? `${rawBase}/${resolved}` : `${rawBase}/${resolved}`;
+        return `url(${rawUrl})`;
+      });
+
+      // Replace <link> tag with inline <style>
+      const linkRegex = new RegExp(
+        `<link[^>]*href=["'][^"']*?${cssFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["'][^>]*/?>`,
+        "gi"
+      );
+      if (linkRegex.test(processed)) {
+        processed = processed.replace(linkRegex, `<style>${resolvedCss}</style>`);
+      } else {
+        // If no matching link tag, inject before </head>
+        processed = processed.replace("</head>", `<style>${resolvedCss}</style>\n</head>`);
       }
+    }
+
+    // 2. Inline JS files
+    for (const [filePath, content] of Object.entries(textFiles)) {
+      if (!filePath.endsWith(".js")) continue;
+      const jsFileName = filePath.split("/").pop()!;
+      const scriptRegex = new RegExp(
+        `<script[^>]*src=["'][^"']*?${jsFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["'][^>]*>\\s*</script>`,
+        "gi"
+      );
+      processed = processed.replace(scriptRegex, `<script>${content}</script>`);
+    }
+
+    // 3. Replace all relative asset references (src, href, poster, data-src) with raw GitHub URLs
+    processed = processed.replace(
+      /(src|href|poster|data-src|data-bg|content)=(["'])([^"']+)\2/gi,
+      (_match, attr: string, quote: string, ref: string) => {
+        // Skip external URLs, data URIs, anchors, mailto, tel, javascript
+        if (ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("//") ||
+            ref.startsWith("data:") || ref.startsWith("#") || ref.startsWith("mailto:") ||
+            ref.startsWith("tel:") || ref.startsWith("javascript:")) {
+          return `${attr}=${quote}${ref}${quote}`;
+        }
+
+        // Skip if it's an already-inlined CSS/JS (won't match since we removed link/script tags)
+        // Resolve the relative path
+        const resolved = resolvePath("", ref);
+
+        // Check if it's a known media file
+        if (mediaFiles[resolved]) {
+          return `${attr}=${quote}${mediaFiles[resolved]}${quote}`;
+        }
+
+        // For any other relative reference, try raw GitHub URL
+        return `${attr}=${quote}${rawBase}/${resolved}${quote}`;
+      }
+    );
+
+    // 4. Fix lazy loading
+    processed = processed.replace(/(<img[^>]*)\bdata-src=(["'][^"']+["'])/gi, (_match, before: string, src: string) => {
+      if (/\bsrc=["']/i.test(before)) return _match;
+      return `${before} src=${src}`;
+    });
+    processed = processed.replace(/\bloading=["']lazy["']/gi, "");
+
+    // 5. Also resolve url() in inline styles
+    processed = processed.replace(/style=["']([^"']+)["']/gi, (_match, styleContent: string) => {
+      const resolved = styleContent.replace(/url\(["']?([^"')]+)["']?\)/gi, (_m, ref: string) => {
+        if (ref.startsWith("data:") || ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("//")) {
+          return `url(${ref})`;
+        }
+        const resolvedPath = resolvePath("", ref);
+        return `url(${mediaFiles[resolvedPath] || `${rawBase}/${resolvedPath}`})`;
+      });
+      return `style="${resolved}"`;
+    });
+
+    // 6. Add <base> tag as ultimate fallback for any missed references
+    if (!processed.includes("<base")) {
+      processed = processed.replace("<head>", `<head>\n<base href="${rawBase}/">`);
+      // If no <head>, add it
+      if (!processed.includes("<base")) {
+        processed = `<base href="${rawBase}/">\n${processed}`;
+      }
+    }
+
+    // Combine all files for the response
+    const allFiles: Record<string, string> = { ...textFiles };
+    for (const [k, v] of Object.entries(mediaFiles)) {
+      allFiles[k] = v;
     }
 
     return NextResponse.json({
       html: processed,
-      files,
+      files: allFiles,
       fileName: `${repo} (GitHub)`,
     });
   } catch (error) {
     console.error("GitHub contents error:", error);
     return NextResponse.json({ error: "Failed to fetch repository" }, { status: 500 });
   }
+}
+
+/** Resolve a relative path like ./assets/img.png or ../fonts/x.woff relative to a base dir */
+function resolvePath(baseDir: string, ref: string): string {
+  // Strip leading ./ or /
+  let clean = ref.replace(/^\.\//, "").replace(/^\//, "");
+
+  if (clean.startsWith("../")) {
+    // Go up from baseDir
+    const baseParts = baseDir ? baseDir.split("/") : [];
+    while (clean.startsWith("../") && baseParts.length > 0) {
+      clean = clean.substring(3);
+      baseParts.pop();
+    }
+    clean = clean.replace(/^\.\.\//, "");
+    return baseParts.length > 0 ? `${baseParts.join("/")}/${clean}` : clean;
+  }
+
+  if (baseDir && !clean.includes("/")) {
+    return `${baseDir}/${clean}`;
+  }
+
+  return clean;
 }
