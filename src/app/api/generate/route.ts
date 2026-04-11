@@ -33,34 +33,39 @@ export async function POST(request: Request) {
 
     console.log("[generate] AI generation complete, output length:", generatedHtml.length);
 
-    // Try to save the preview (but don't fail if auth is missing)
+    // Save the preview to the database
     let slug = generateSlug();
 
-    try {
-      const supabase = await createServerSupabaseClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (user) {
-        const { error } = await supabase.from("previews").insert({
-          caller_id: user.id,
-          template_id: templateId || null,
-          slug,
-          field_values: businessData,
-          html_snapshot: generatedHtml,
-          prospect_name: businessData.name,
-          expires_at: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-        });
+    if (!user) {
+      return NextResponse.json(
+        { error: "You must be logged in to generate previews" },
+        { status: 401 }
+      );
+    }
 
-        if (error) {
-          console.error("[generate] DB save error:", error.message);
-        }
-      }
-    } catch (dbError) {
-      console.error("[generate] DB error (non-fatal):", dbError);
+    const { error: dbError } = await supabase.from("previews").insert({
+      caller_id: user.id,
+      template_id: templateId || null,
+      slug,
+      field_values: businessData,
+      html_snapshot: generatedHtml,
+      prospect_name: businessData.name,
+      expires_at: new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000
+      ).toISOString(),
+    });
+
+    if (dbError) {
+      console.error("[generate] DB save error:", dbError.message);
+      return NextResponse.json(
+        { error: "Failed to save preview: " + dbError.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
