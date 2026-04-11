@@ -42,7 +42,7 @@ export default function TemplateDetailPage({
     .replace(/\{\{PHONE\}\}/g, "(555) 123-4567")
     .replace(/\{\{ADDRESS\}\}/g, "123 Main Street, City, ST 12345")
     .replace(/\{\{HOURS\}\}/g, "Mon-Sat: 9am - 9pm")
-    .replace(/\{\{COLOR_PRIMARY\}\}/g, "#6366F1")
+    .replace(/\{\{COLOR_PRIMARY\}\}/g, "#10b981")
     .replace(/\{\{HERO_IMAGE\}\}/g, "https://placehold.co/1920x1080/1B4FD8/white?text=Hero+Image")
     .replace(/\{\{ABOUT_TEXT\}\}/g, "We are a passionate team dedicated to providing the best service in our industry. With years of experience and a commitment to excellence, we ensure every client receives personalized attention.");
 
@@ -89,7 +89,7 @@ export default function TemplateDetailPage({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#10b981]/10 to-[#059669]/10">
                       <span className="text-6xl font-bold text-primary/20">
                         {template.name.charAt(0)}
                       </span>
@@ -139,7 +139,7 @@ export default function TemplateDetailPage({
                 </div>
 
                 <Button
-                  className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-12 text-base"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base"
                   onClick={() => router.push(`/customize/${template.id}`)}
                 >
                   <Palette className="w-5 h-5 mr-2" />

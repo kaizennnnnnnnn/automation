@@ -134,7 +134,7 @@ export default function CallerDashboardPage() {
           BUSINESS_NAME: row["business name"] || row["name"] || "",
           PHONE: row["phone"] || "",
           ADDRESS: `${row["address"] || ""} ${row["city"] || ""}`.trim(),
-          COLOR_PRIMARY: "#6366F1",
+          COLOR_PRIMARY: "#10b981",
           TAGLINE: "Welcome to our website",
           HERO_IMAGE:
             "https://placehold.co/1920x1080/1B4FD8/white?text=Hero+Image",
@@ -282,7 +282,7 @@ export default function CallerDashboardPage() {
             </DialogContent>
           </Dialog>
           <Button
-            className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
+            className="bg-emerald-600 hover:bg-emerald-700"
             onClick={() => router.push("/marketplace")}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -315,8 +315,8 @@ export default function CallerDashboardPage() {
                   {new Set(previews.map((p) => p.template_id)).size}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Layers className="w-6 h-6 text-[#6366F1]" />
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Layers className="w-6 h-6 text-[#10b981]" />
               </div>
             </div>
           </CardContent>
@@ -353,7 +353,7 @@ export default function CallerDashboardPage() {
               clients.
             </p>
             <Button
-              className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
+              className="bg-emerald-600 hover:bg-emerald-700"
               onClick={() => router.push("/marketplace")}
             >
               <Plus className="w-4 h-4 mr-2" />

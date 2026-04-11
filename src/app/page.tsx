@@ -11,14 +11,14 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.12),transparent_50%)]" />
         <div className="relative max-w-5xl mx-auto px-4 py-24 md:py-32 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
             <Sparkles className="w-4 h-4" /> AI-Powered Cold Outreach
           </div>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
             Turn any website into a{" "}
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">personalized pitch</span>
+            <span className="text-emerald-400">personalized pitch</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Upload your template, paste a Google Maps link, and AI generates a custom website
@@ -26,7 +26,7 @@ export default function HomePage() {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href="/signup">
-              <Button size="lg" className="h-12 px-8 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 text-base font-medium">
+              <Button size="lg" className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-base font-medium">
                 Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -116,7 +116,7 @@ export default function HomePage() {
             </Card>
             <Card className="bg-card/50 border-primary/30 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-xs font-medium">Popular</span>
+                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Popular</span>
               </div>
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-1">Agency</h3>
@@ -126,7 +126,7 @@ export default function HomePage() {
                     <li key={i} className="flex items-center gap-2 text-sm"><CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />{i}</li>
                   ))}
                 </ul>
-                <Link href="/signup"><Button className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]">Start Free Trial</Button></Link>
+                <Link href="/signup"><Button className="w-full bg-emerald-600 hover:bg-emerald-700">Start Free Trial</Button></Link>
               </CardContent>
             </Card>
           </div>
@@ -139,7 +139,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold mb-6">Ready to close more clients?</h2>
           <p className="text-lg text-muted-foreground mb-10">Join web designers using SiteForge to personalize every cold outreach.</p>
           <Link href="/signup">
-            <Button size="lg" className="h-12 px-8 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 text-base">
+            <Button size="lg" className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-base">
               Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
@@ -150,7 +150,7 @@ export default function HomePage() {
       <footer className="border-t border-border py-8">
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-md flex items-center justify-center">
+            <div className="w-6 h-6 bg-emerald-600 rounded-md flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="font-semibold text-sm">SiteForge</span>

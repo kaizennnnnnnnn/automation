@@ -26,7 +26,7 @@ export const SAMPLE_TEMPLATES: Template[] = [
     niche: "Restaurant",
     description:
       "A warm, inviting restaurant template with hero section, menu highlights, location map, and reservation CTA. Perfect for Italian restaurants, bistros, and fine dining.",
-    preview_image_url: "https://placehold.co/800x500/6366F1/white?text=Bella+Cucina",
+    preview_image_url: "https://placehold.co/800x500/059669/white?text=Bella+Cucina",
     html_content: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -125,7 +125,7 @@ footer{background:#1a1a1a;color:#999;padding:30px 20px;text-align:center;font-si
     niche: "Dentist",
     description:
       "Clean, professional dental practice template with service highlights, team section, testimonials, and appointment booking CTA.",
-    preview_image_url: "https://placehold.co/800x500/6366F1/white?text=BrightSmile+Pro",
+    preview_image_url: "https://placehold.co/800x500/059669/white?text=BrightSmile+Pro",
     html_content: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,7 +196,7 @@ footer{background:#1a1a1a;color:#999;padding:30px 20px;text-align:center;font-si
     niche: "Gym",
     description:
       "Bold, high-energy gym template with membership plans, class schedules, trainer spotlights, and strong CTAs.",
-    preview_image_url: "https://placehold.co/800x500/0f172a/white?text=IronForge+Fitness",
+    preview_image_url: "https://placehold.co/800x500/1e293b/white?text=IronForge+Fitness",
     html_content: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -268,7 +268,7 @@ footer{padding:30px 20px;text-align:center;color:#666;font-size:0.9rem}
     name: "Luxe Salon",
     niche: "Hair Salon",
     description: "Elegant hair salon template with service menu, gallery, booking CTA, and stylist profiles.",
-    preview_image_url: "https://placehold.co/800x500/7c3aed/white?text=Luxe+Salon",
+    preview_image_url: "https://placehold.co/800x500/0d9488/white?text=Luxe+Salon",
     html_content: `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>{{BUSINESS_NAME}}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Georgia',serif;color:#333}
@@ -317,7 +317,7 @@ footer{background:#1a1a1a;color:#999;padding:30px 20px;text-align:center;font-si
     name: "PrimeProperties",
     niche: "Real Estate",
     description: "Professional real estate agent template with property showcase, about section, and contact form.",
-    preview_image_url: "https://placehold.co/800x500/0ea5e9/white?text=PrimeProperties",
+    preview_image_url: "https://placehold.co/800x500/14b8a6/white?text=PrimeProperties",
     html_content: `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>{{BUSINESS_NAME}}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#333}

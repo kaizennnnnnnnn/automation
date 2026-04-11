@@ -16,7 +16,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />
           </div>
           <span className="text-2xl font-bold text-foreground">SiteForge</span>
@@ -61,7 +61,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90"
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
                 disabled={pending}
               >
                 {pending ? "Signing in..." : "Sign in"}

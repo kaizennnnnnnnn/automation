@@ -21,7 +21,7 @@ export function TemplateCard({ template, showDesigner = true }: TemplateCardProp
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#10b981]/10 to-[#059669]/10">
               <span className="text-4xl font-bold text-primary/20">
                 {template.name.charAt(0)}
               </span>

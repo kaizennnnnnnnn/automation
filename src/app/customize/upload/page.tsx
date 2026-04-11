@@ -509,7 +509,7 @@ export default function UploadCustomizePage() {
                     <Button
                       onClick={handleScrape}
                       disabled={scraping || !googleUrl.trim()}
-                      className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-9 w-9 p-0"
+                      className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 p-0"
                       size="icon"
                     >
                       {scraping ? (
@@ -541,14 +541,14 @@ export default function UploadCustomizePage() {
                 {/* Step 3: Generate */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-5 h-5 bg-[#6366F1] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-5 h-5 bg-[#10b981] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                       3
                     </div>
                     <h2 className="text-sm font-semibold">Generate with AI</h2>
                   </div>
                   <Button
                     onClick={handleGenerate}
-                    className="w-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 h-12 text-base"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base"
                     disabled={generating}
                   >
                     {generating ? (

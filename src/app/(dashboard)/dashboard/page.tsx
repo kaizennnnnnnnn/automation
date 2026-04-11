@@ -586,7 +586,7 @@ export default function DashboardPage() {
               </div>
 
               <Button onClick={handleGenerate}
-                className="w-full h-11 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 text-sm font-medium shadow-lg shadow-primary/20"
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-sm font-medium shadow-lg shadow-emerald-500/20"
                 disabled={generating || !businessData || !htmlContent}>
                 {generating ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
