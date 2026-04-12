@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 const protectedRoutes = ["/dashboard", "/customize"];
-const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -21,13 +20,7 @@ export async function proxy(request: NextRequest) {
           );
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, {
-              ...options,
-              maxAge: MAX_AGE,
-              path: "/",
-              sameSite: "lax" as const,
-              secure: true,
-            })
+            response.cookies.set(name, value, options)
           );
         },
       },
@@ -41,8 +34,14 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Redirect unauthenticated users away from protected routes
   if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Redirect authenticated users away from auth pages
+  if (user && (pathname === "/login" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
