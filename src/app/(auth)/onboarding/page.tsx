@@ -15,7 +15,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />
           </div>
           <span className="text-2xl font-bold text-foreground">SiteForge</span>
@@ -49,7 +49,7 @@ export default function OnboardingPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black"
                 disabled={pending}
               >
                 {pending ? "Setting up..." : "Get started"}

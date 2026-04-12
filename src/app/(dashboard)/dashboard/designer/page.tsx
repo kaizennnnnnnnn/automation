@@ -214,7 +214,7 @@ export default function DesignerDashboardPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger
-            render={<Button className="bg-emerald-600 hover:bg-emerald-700" />}
+            render={<Button className="bg-amber-500 hover:bg-amber-600 text-black" />}
           >
             <Plus className="w-4 h-4 mr-2" />
             Upload Template
@@ -373,7 +373,7 @@ export default function DesignerDashboardPage() {
 
               <Button
                 onClick={handleSubmit}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black"
                 disabled={submitting}
               >
                 {submitting ? (
@@ -447,7 +447,7 @@ export default function DesignerDashboardPage() {
               Upload your first template to start earning from the marketplace.
             </p>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-amber-500 hover:bg-amber-600 text-black"
               onClick={() => setDialogOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />

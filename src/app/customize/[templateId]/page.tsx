@@ -204,7 +204,7 @@ export default function CustomizePage({
                 <Button
                   onClick={handleScrape}
                   disabled={scraping || !googleUrl.trim()}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-amber-500 hover:bg-amber-600 text-black"
                 >
                   {scraping ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -269,7 +269,7 @@ export default function CustomizePage({
                 {/* Step 2: Generate */}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 bg-[#10b981] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="w-6 h-6 bg-[#f59e0b] text-white rounded-full flex items-center justify-center text-xs font-bold">
                       2
                     </div>
                     <h2 className="text-lg font-semibold">
@@ -282,7 +282,7 @@ export default function CustomizePage({
                   </p>
                   <Button
                     onClick={handleGenerate}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-black h-12 text-base"
                     disabled={generating}
                   >
                     {generating ? (
