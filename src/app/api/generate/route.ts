@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { applyBusinessDataToTemplate } from "@/lib/ai-engine";
 import { generateSlug } from "@/lib/preview-engine";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createServiceRoleClient } from "@/lib/supabase-server";
 import type { BusinessData } from "@/lib/google-places";
 
 export const maxDuration = 60; // Allow up to 60 seconds for AI processing
@@ -48,7 +48,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error: dbError } = await supabase.from("previews").insert({
+    // Use service role to bypass RLS policies
+    const serviceClient = await createServiceRoleClient();
+    const { error: dbError } = await serviceClient.from("previews").insert({
       caller_id: user.id,
       template_id: templateId || null,
       slug,
