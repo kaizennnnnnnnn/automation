@@ -2,22 +2,6 @@ import { createBrowserClient } from "@supabase/ssr";
 
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-function parseCookies(): { name: string; value: string }[] {
-  return document.cookie.split(";").map((c) => {
-    const [name, ...rest] = c.trim().split("=");
-    return { name: name || "", value: decodeURIComponent(rest.join("=") || "") };
-  }).filter((c) => c.name);
-}
-
-function setCookie(name: string, value: string, options: Record<string, unknown> = {}) {
-  let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-  cookie += `; Max-Age=${MAX_AGE}`;
-  cookie += `; Path=/`;
-  cookie += `; SameSite=Lax`;
-  if (options.secure !== false) cookie += `; Secure`;
-  document.cookie = cookie;
-}
-
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,11 +9,22 @@ export function createClient() {
     {
       cookies: {
         getAll() {
-          return parseCookies();
+          if (typeof document === "undefined") return [];
+          const pairs = document.cookie.split(";");
+          return pairs
+            .map((c) => {
+              const idx = c.indexOf("=");
+              if (idx === -1) return null;
+              return {
+                name: c.substring(0, idx).trim(),
+                value: c.substring(idx + 1).trim(),
+              };
+            })
+            .filter(Boolean) as { name: string; value: string }[];
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            setCookie(name, value, options as Record<string, unknown>);
+          cookiesToSet.forEach(({ name, value }) => {
+            document.cookie = `${name}=${value}; Max-Age=${MAX_AGE}; Path=/; SameSite=Lax; Secure`;
           });
         },
       },
