@@ -50,9 +50,8 @@ export async function POST(request: Request) {
 
     // Use service role to bypass RLS policies
     const serviceClient = await createServiceRoleClient();
-    const { error: dbError } = await serviceClient.from("previews").insert({
+    const insertData: Record<string, unknown> = {
       caller_id: user.id,
-      template_id: templateId || null,
       slug,
       field_values: businessData,
       html_snapshot: generatedHtml,
@@ -60,7 +59,12 @@ export async function POST(request: Request) {
       expires_at: new Date(
         Date.now() + 30 * 24 * 60 * 60 * 1000
       ).toISOString(),
-    });
+    };
+    // Only include template_id if it's a real template (avoids FK constraint)
+    if (templateId) {
+      insertData.template_id = templateId;
+    }
+    const { error: dbError } = await serviceClient.from("previews").insert(insertData);
 
     if (dbError) {
       console.error("[generate] DB save error:", dbError.message);
