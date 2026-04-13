@@ -27,10 +27,21 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh the session token on every page load
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // First refresh the session — this uses the refresh token to get
+  // a new access token if the current one is expired (>1 hour).
+  // Without this, getUser() fails after the JWT expires.
+  const { data: { session } } = await supabase.auth.getSession();
+
+  let user = session?.user ?? null;
+
+  // If we got a session, validate it with getUser() for security.
+  // If getUser fails (e.g. token just refreshed), still trust the session.
+  if (session) {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      user = data.user;
+    }
+  }
 
   const pathname = request.nextUrl.pathname;
 
