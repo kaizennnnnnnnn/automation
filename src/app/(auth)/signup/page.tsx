@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signup, null);
@@ -16,10 +16,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-foreground">SiteForge</span>
+          <Logo size="lg" />
         </div>
 
         <Card>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/shared/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, ArrowRight, FolderOpen, Search, Sparkles, Link2, CheckCircle2, GitBranch } from "lucide-react";
+import { ArrowRight, FolderOpen, Search, Sparkles, Link2, CheckCircle2, GitBranch } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -150,9 +150,7 @@ export default function HomePage() {
       <footer className="border-t border-border py-8">
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-amber-500 rounded-md flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
-            </div>
+            <div className="w-6 h-6 bg-amber-500 rounded-md flex items-center justify-center font-black text-black text-[9px]">S</div>
             <span className="font-semibold text-sm">SiteForge</span>
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
