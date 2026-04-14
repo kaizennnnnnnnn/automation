@@ -17,20 +17,16 @@ interface Replacement {
 
 /**
  * Extracts only the text content from HTML to send to Claude (much smaller).
- * Returns visible text snippets that Claude can identify and replace.
  */
 function extractTextContent(html: string): string {
-  // Remove <script> and <style> blocks
   let text = html.replace(/<script[\s\S]*?<\/script>/gi, "");
   text = text.replace(/<style[\s\S]*?<\/style>/gi, "");
-  // Remove HTML tags but keep the text
   text = text.replace(/<[^>]+>/g, "\n");
-  // Clean up whitespace
   text = text
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l.length > 0)
-    .filter((l, i, arr) => arr.indexOf(l) === i) // dedupe
+    .filter((l, i, arr) => arr.indexOf(l) === i)
     .join("\n");
   return text;
 }
@@ -50,6 +46,38 @@ function extractImageSrcs(html: string): string[] {
   return [...new Set(srcs)];
 }
 
+/**
+ * Detects the likely language/country from business data.
+ */
+function detectLanguageContext(businessData: BusinessData): string {
+  const address = businessData.address.toLowerCase();
+  const name = businessData.name.toLowerCase();
+  const all = `${address} ${name} ${businessData.description || ""}`.toLowerCase();
+
+  // Common country/language indicators
+  if (/serbia|srbija|beograd|belgrade|novi sad|niš|kragujevac/i.test(all)) return "Serbian (Latin script)";
+  if (/croatia|hrvatska|zagreb/i.test(all)) return "Croatian";
+  if (/bosnia|sarajevo/i.test(all)) return "Bosnian";
+  if (/germany|deutschland|berlin|münchen|hamburg/i.test(all)) return "German";
+  if (/france|paris|lyon|marseille/i.test(all)) return "French";
+  if (/spain|españa|madrid|barcelona/i.test(all)) return "Spanish";
+  if (/italy|italia|roma|milano/i.test(all)) return "Italian";
+  if (/netherlands|nederland|amsterdam/i.test(all)) return "Dutch";
+  if (/portugal|lisboa|porto/i.test(all)) return "Portuguese";
+  if (/japan|tokyo|東京/i.test(all)) return "Japanese";
+  if (/china|beijing|shanghai|中国/i.test(all)) return "Chinese (Simplified)";
+  if (/korea|seoul|서울/i.test(all)) return "Korean";
+  if (/turkey|türkiye|istanbul|ankara/i.test(all)) return "Turkish";
+  if (/poland|polska|warszawa|warsaw/i.test(all)) return "Polish";
+  if (/czech|praha|prague/i.test(all)) return "Czech";
+  if (/russia|россия|москва|moscow/i.test(all)) return "Russian";
+  if (/greece|ελλάδα|athens/i.test(all)) return "Greek";
+  if (/romania|bucurești|bucharest/i.test(all)) return "Romanian";
+  if (/hungary|budapest|magyarország/i.test(all)) return "Hungarian";
+  if (/arab|dubai|riyadh|saudi|egypt|cairo/i.test(all)) return "Arabic";
+  return "English";
+}
+
 export async function applyBusinessDataToTemplate(
   htmlContent: string,
   businessData: BusinessData
@@ -61,28 +89,25 @@ export async function applyBusinessDataToTemplate(
   const textContent = extractTextContent(htmlContent);
   const imageSrcs = extractImageSrcs(htmlContent);
 
-  // Also grab raw HTML snippets that contain visible text (headings, paragraphs, spans, titles, alt texts, meta)
   const rawSnippets: string[] = [];
-  const snippetRegex = /<(title|h[1-6]|p|span|a|li|td|th|label|button|figcaption)[^>]*>([^<]{3,})<\//gi;
+  const snippetRegex = /<(title|h[1-6]|p|span|a|li|td|th|label|button|figcaption|div)[^>]*>([^<]{3,})<\//gi;
   let snippetMatch;
   while ((snippetMatch = snippetRegex.exec(htmlContent)) !== null) {
     const text = snippetMatch[2].trim();
-    if (text && !text.startsWith("data:") && !text.startsWith("__SITEFORGE") && !text.startsWith("{") && text.length < 200) {
+    if (text && !text.startsWith("data:") && !text.startsWith("__SITEFORGE") && !text.startsWith("{") && text.length < 300) {
       rawSnippets.push(text);
     }
   }
-  // Also find text in attributes like alt, title, placeholder, content
   const attrRegex = /(?:alt|title|placeholder|content|aria-label)=["']([^"']{3,})["']/gi;
   while ((snippetMatch = attrRegex.exec(htmlContent)) !== null) {
     const text = snippetMatch[1].trim();
-    if (text && text.length < 200) {
+    if (text && text.length < 300) {
       rawSnippets.push(text);
     }
   }
   const uniqueSnippets = [...new Set(rawSnippets)];
 
-  console.log("[ai-engine] Raw snippets found:", uniqueSnippets.length);
-  console.log("[ai-engine] First 5 snippets:", uniqueSnippets.slice(0, 5));
+  const detectedLanguage = detectLanguageContext(businessData);
 
   const businessInfo = `
 Business Name: ${businessData.name}
@@ -93,51 +118,78 @@ Category: ${businessData.category}
 Rating: ${businessData.rating}/5 (${businessData.reviewCount} reviews)
 Description: ${businessData.description}
 Hours: ${businessData.hours.join(" | ") || "Not available"}
+Detected Language/Country: ${detectedLanguage}
   `.trim();
 
   console.log("[ai-engine] Text content length:", textContent.length);
   console.log("[ai-engine] Image srcs found:", imageSrcs.length);
+  console.log("[ai-engine] Detected language:", detectedLanguage);
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
-    max_tokens: 6000,
+    max_tokens: 8000,
     messages: [
       {
         role: "user",
-        content: `You are helping customize a website template for a real business called "${businessData.name}". I'll give you the visible text from the template and the real business data. Return a JSON array of find/replace pairs.
+        content: `You are customizing a website template for a REAL business. Your job is to make the website look like it was BUILT for this business — not a template with a few words swapped.
 
 REAL BUSINESS DATA:
 ${businessInfo}
 
-BUSINESS PHOTOS (use these URLs to replace any template/placeholder image URLs):
+BUSINESS PHOTOS (replace template/placeholder images with these):
 ${photoList || "No photos available"}
 
-ALL VISIBLE TEXT IN THE TEMPLATE (extracted from HTML tags):
-${uniqueSnippets.slice(0, 60).join("\n")}
+ALL VISIBLE TEXT IN THE TEMPLATE:
+${uniqueSnippets.slice(0, 80).join("\n")}
 
-ADDITIONAL TEXT (extracted by stripping tags):
-${textContent.slice(0, 2000)}
+ADDITIONAL TEXT:
+${textContent.slice(0, 2500)}
 
-IMAGE URLS CURRENTLY IN THE TEMPLATE:
+IMAGE URLS IN TEMPLATE:
 ${imageSrcs.slice(0, 15).join("\n")}
 
-Return a JSON array of find/replace pairs. IMPORTANT RULES:
+Return a JSON array of find/replace pairs. CRITICAL RULES:
 
-1. Find the template's brand/business name (appears in headings, titles, footer, nav) and replace ALL occurrences with "${businessData.name}"
-2. Find ANY phone numbers and replace with "${businessData.phone || "Call us today"}"
-3. Find ANY street addresses and replace with "${businessData.address}"
-4. Find the tagline/subtitle and write a new one specific to "${businessData.name}"
-5. Find descriptive paragraphs about the business and rewrite them for "${businessData.name}" - a ${businessData.category} located at ${businessData.address}
-6. Replace image src URLs with the business photo URLs I provided (match hero images first, then other images)
-7. Find ANY email addresses and replace with a plausible one for "${businessData.name}"
-8. Find opening hours text and replace with: ${businessData.hours.join(", ") || "Contact us for hours"}
+## BRANDING (most important)
+- Find the template's brand name in ALL forms (uppercase, lowercase, title case, split across tags) and replace EVERY occurrence with "${businessData.name}"
+- Example: if template brand is "IronForge", replace "IronForge", "IRONFORGE", "ironforge", "Iron Forge", "Ironforge" — ALL of them
+- The brand name usually appears in: page title, nav/header, hero heading, footer, copyright, meta tags
+- Generate AT LEAST 3-5 brand name replacements covering different casings
 
-Be AGGRESSIVE with replacements - I want the website to look like it was built specifically for "${businessData.name}". Replace at minimum 10+ items. Every piece of text that refers to the original template business should be changed.
+## LANGUAGE
+- The business is located in a ${detectedLanguage}-speaking area
+${detectedLanguage !== "English" ? `- TRANSLATE ALL template text to ${detectedLanguage}. This includes:
+  - Navigation menu items (Home, About, Contact, etc.)
+  - Button text (Learn More, Get Started, Sign Up, etc.)
+  - Section headings (Our Services, About Us, Contact, etc.)
+  - Taglines and descriptions
+  - Footer text
+  - ALL body copy and paragraphs
+- Keep the business name "${businessData.name}" as-is (don't translate it)
+- The entire website should read naturally in ${detectedLanguage}` : "- Keep all text in English"}
 
-Each "find" must be an EXACT string copy-pasted from the template text above.
+## CONTENT
+- Replace ALL phone numbers with "${businessData.phone || "Contact us"}"
+- Replace ALL addresses with "${businessData.address}"
+- Replace ALL email addresses with a plausible one for "${businessData.name}"
+- Replace taglines/slogans with something specific to this ${businessData.category}${detectedLanguage !== "English" ? ` (in ${detectedLanguage})` : ""}
+- Rewrite ALL descriptive paragraphs to be about "${businessData.name}"${detectedLanguage !== "English" ? ` in ${detectedLanguage}` : ""}
+- Replace hours/schedule text with: ${businessData.hours.join(", ") || "Contact for hours"}
+- Replace ALL "lorem ipsum" or placeholder text
 
-Return ONLY a JSON array. Example:
-[{"find":"IRONFORGE","replace":"BLACK WORKOUT"},{"find":"IronForge","replace":"Black Workout"},{"find":"Forge Your Best Self","replace":"Push Your Limits"},{"find":"(555) 123-4567","replace":"011 4234223"}]`,
+## IMAGES
+- Replace hero/banner image URLs with business photos
+- Replace gallery/facility images with business photos
+- Do NOT replace small avatar/profile images (team members, reviewers)
+
+## QUANTITY
+- Return AT LEAST 20 replacements. Every visible piece of template text should be customized.
+- Be thorough — miss nothing.
+
+Each "find" must be an EXACT string that appears in the template text above. Do not guess or fabricate strings.
+
+Return ONLY a JSON array, no other text:
+[{"find":"exact template text","replace":"new text"},...]`,
       },
     ],
   });
@@ -148,13 +200,12 @@ Return ONLY a JSON array. Example:
   }
 
   let jsonText = content.text.trim();
-  // Remove markdown code blocks if present
   if (jsonText.startsWith("```json")) jsonText = jsonText.slice(7);
   if (jsonText.startsWith("```")) jsonText = jsonText.slice(3);
   if (jsonText.endsWith("```")) jsonText = jsonText.slice(0, -3);
   jsonText = jsonText.trim();
 
-  console.log("[ai-engine] AI response:", jsonText.slice(0, 500));
+  console.log("[ai-engine] AI response length:", jsonText.length);
 
   let replacements: Replacement[];
   try {
@@ -176,12 +227,10 @@ Return ONLY a JSON array. Example:
     }
   }
 
-  // Also do smart brand name detection and replacement
-  // Find what looks like the brand name in the template (appears in <title>)
+  // Smart brand name detection and replacement
   const titleMatch = result.match(/<title>([^<]+)<\/title>/i);
   if (titleMatch) {
     const titleText = titleMatch[1];
-    // Extract the brand name (usually the first word(s) before a separator)
     const brandMatch = titleText.match(/^([A-Za-z0-9\s]+?)[\s]*[—\-–|:]/);
     if (brandMatch) {
       const templateBrand = brandMatch[1].trim();
@@ -192,57 +241,47 @@ Return ONLY a JSON array. Example:
     }
   }
 
-  // Replace split-tag brand names like: TEXT<span>TEXT</span>
-  // Pattern: word characters followed by a <span> with more word characters
-  // e.g. IRON<span class="text-primary">FORGE</span>
+  // Handle split-tag brand names: TEXT<span>TEXT</span>
   const splitBrandRegex2 = /([A-Z]{2,})(<span[^>]*>)([A-Z]{2,})(<\/span>)/g;
   let splitMatch2;
-  const resultCopy = result; // search on current result
+  const resultCopy = result;
   while ((splitMatch2 = splitBrandRegex2.exec(resultCopy)) !== null) {
-    const part1 = splitMatch2[1]; // "IRON"
-    const spanOpen = splitMatch2[2]; // <span class="text-primary">
-    const part2 = splitMatch2[3]; // "FORGE"
-    const spanClose = splitMatch2[4]; // </span>
-    const combinedBrand = part1 + part2; // "IRONFORGE"
+    const part1 = splitMatch2[1];
+    const spanOpen = splitMatch2[2];
+    const part2 = splitMatch2[3];
+    const spanClose = splitMatch2[4];
+    const combinedBrand = part1 + part2;
 
-    // Check if this looks like the brand name
     const titleUpper = (titleMatch?.[1] || "").toUpperCase();
     if (combinedBrand.length >= 4 && (titleUpper.includes(combinedBrand) || titleUpper.includes(part1))) {
       const bizWords = businessData.name.toUpperCase().split(" ");
       let newPart1: string, newPart2: string;
       if (bizWords.length >= 2) {
-        // Split by words: "BLACK" + "WORKOUT"
         newPart1 = bizWords[0];
         newPart2 = bizWords.slice(1).join(" ");
       } else {
-        // Single word: split in half
         const mid = Math.ceil(bizWords[0].length / 2);
         newPart1 = bizWords[0].slice(0, mid);
         newPart2 = bizWords[0].slice(mid);
       }
-      const original = splitMatch2[0]; // IRON<span class="text-primary">FORGE</span>
+      const original = splitMatch2[0];
       const replacement = `${newPart1}${spanOpen}${newPart2}${spanClose}`;
       result = result.split(original).join(replacement);
       console.log("[ai-engine] Split brand fix:", original, "->", replacement);
     }
   }
 
-  // Also handle the heading "Forge Your <br/><span>Best Self</span>" pattern
-  // This is text split across <br/> and <span> tags
+  // Handle headings with inner HTML tags
   const headingRegex = /(<h[1-6][^>]*>)\s*([\s\S]*?)\s*(<\/h[1-6]>)/gi;
   let headingMatch;
   const resultForHeadings = result;
   while ((headingMatch = headingRegex.exec(resultForHeadings)) !== null) {
     const fullHeading = headingMatch[0];
     const innerHtml = headingMatch[2];
-    // Extract just the text from the heading
     const headingText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
-    // Check if any AI replacement targets this text
     for (const { find, replace } of replacements) {
       if (find && replace && headingText.includes(find) && !fullHeading.includes(replace)) {
-        // The text exists in the heading but wasn't replaced because of HTML tags
-        // Do a text-only replacement preserving the HTML structure
         const newInner = innerHtml.replace(find, replace);
         if (newInner !== innerHtml) {
           result = result.split(fullHeading).join(
@@ -254,13 +293,11 @@ Return ONLY a JSON array. Example:
     }
   }
 
-  // Smart image replacement — only replace images that represent the BUSINESS/FACILITY
-  // Keep images that represent PEOPLE (trainers, reviewers, team members)
+  // Smart image replacement
   if (businessData.photos.length > 0) {
     let photoIndex = 0;
     let replacedCount = 0;
 
-    // Find all img tags with their surrounding HTML context (200 chars before)
     const imgTagRegex = /<img[^>]*src=["'](https:\/\/images\.unsplash\.com\/[^"'\s)]+)["'][^>]*>/gi;
     let imgMatch;
     const resultForImgs = result;
@@ -270,22 +307,14 @@ Return ONLY a JSON array. Example:
       const url = imgMatch[1];
       const position = imgMatch.index;
 
-      // Get surrounding context (200 chars before and after the img tag)
       const contextBefore = resultForImgs.slice(Math.max(0, position - 300), position).toLowerCase();
       const contextAfter = resultForImgs.slice(position, position + fullTag.length + 300).toLowerCase();
       const context = contextBefore + " " + contextAfter;
 
-      // SKIP if this image is in a people-related section
       const isPeopleSection = /trainer|coach|instructor|staff|team|member|review|testimonial|client|customer|said|quote|avatar|profile|headshot|portrait|ceo|founder|manager/i.test(context);
-
-      // SKIP if the image is small (avatar-sized)
       const isSmallImage = /rounded-full|w-[0-9]{1,2}\b|h-[0-9]{1,2}\b|w-1[0-6]|h-1[0-6]|max-w-\[?[0-9]{2,3}px/i.test(fullTag);
 
-      // REPLACE if it's a hero, gallery, about, facility, or general section
-      const isFacilitySection = /hero|banner|gallery|about|facility|equipment|class|schedule|pricing|feature|service|background|main|cover|full/i.test(context);
-
       if (isPeopleSection || isSmallImage) {
-        // Keep the original image — it's a person photo
         console.log("[ai-engine] Kept image (people section):", url.slice(0, 60));
       } else if (photoIndex < businessData.photos.length) {
         result = result.split(url).join(businessData.photos[photoIndex]);
@@ -294,7 +323,6 @@ Return ONLY a JSON array. Example:
       }
     }
 
-    // Also replace Unsplash URLs used as CSS background-image (hero/banner)
     const bgRegex = /url\(["']?(https:\/\/images\.unsplash\.com\/[^"'\s)]+)["']?\)/gi;
     let bgMatch;
     while ((bgMatch = bgRegex.exec(resultForImgs)) !== null) {
@@ -305,7 +333,7 @@ Return ONLY a JSON array. Example:
       }
     }
 
-    console.log("[ai-engine] Replaced", replacedCount, "facility images, kept people photos");
+    console.log("[ai-engine] Replaced", replacedCount, "facility images");
   }
 
   console.log("[ai-engine] Applied", appliedCount, "AI replacements");
