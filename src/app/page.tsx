@@ -1,10 +1,18 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/shared/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, FolderOpen, Search, Sparkles, Link2, CheckCircle2, GitBranch } from "lucide-react";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // If logged in, go straight to dashboard
+  const supabase = await createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
