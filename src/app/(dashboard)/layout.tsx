@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createServiceRoleClient } from "@/lib/supabase-server";
 import { Sidebar } from "@/components/shared/sidebar";
 
 export default async function DashboardLayout({
@@ -8,8 +8,6 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createServerSupabaseClient();
-
-  // getSession() refreshes expired tokens, getUser() alone doesn't
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
 
@@ -17,7 +15,9 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  // Use service role to bypass RLS
+  const serviceClient = await createServiceRoleClient();
+  const { data: profile } = await serviceClient
     .from("profiles")
     .select("*")
     .eq("user_id", user.id)

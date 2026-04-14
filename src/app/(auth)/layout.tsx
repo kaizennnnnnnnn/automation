@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createServiceRoleClient } from "@/lib/supabase-server";
 
 export default async function AuthLayout({
   children,
@@ -10,9 +10,9 @@ export default async function AuthLayout({
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
 
-  // If already logged in, send them to dashboard
   if (user) {
-    const { data: profile } = await supabase
+    const serviceClient = await createServiceRoleClient();
+    const { data: profile } = await serviceClient
       .from("profiles")
       .select("id")
       .eq("user_id", user.id)
