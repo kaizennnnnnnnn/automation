@@ -107,6 +107,19 @@ export async function applyBusinessDataToTemplate(
   }
   const uniqueSnippets = [...new Set(rawSnippets)];
 
+  // Extract headings with their RAW HTML so the AI sees the actual structure
+  const headingHtmlSnippets: string[] = [];
+  const hRegex = /<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi;
+  let hMatch;
+  while ((hMatch = hRegex.exec(htmlContent)) !== null) {
+    const innerHtml = hMatch[1].trim();
+    const plainText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (plainText.length > 3 && plainText.length < 200) {
+      headingHtmlSnippets.push(`HTML: ${hMatch[0].slice(0, 300)}`);
+      headingHtmlSnippets.push(`Plain text: ${plainText}`);
+    }
+  }
+
   const detectedLanguage = detectLanguageContext(businessData);
 
   const businessInfo = `
@@ -139,6 +152,9 @@ ${businessInfo}
 BUSINESS PHOTOS (replace template/placeholder images with these):
 ${photoList || "No photos available"}
 
+HEADINGS (raw HTML — notice text may be split across <br/>, <span>, etc.):
+${headingHtmlSnippets.slice(0, 20).join("\n")}
+
 ALL VISIBLE TEXT IN THE TEMPLATE:
 ${uniqueSnippets.slice(0, 80).join("\n")}
 
@@ -156,17 +172,25 @@ Return a JSON array of find/replace pairs. CRITICAL RULES:
 - The brand name usually appears in: page title, nav/header, hero heading, footer, copyright, meta tags
 - Generate AT LEAST 3-5 brand name replacements covering different casings
 
+## HEADINGS — VERY IMPORTANT
+- Headings often have text split across HTML tags like: Forge Your<br/><span>Best Self</span>
+- For these, provide SEPARATE find/replace pairs for EACH text fragment:
+  - {"find": "Forge Your", "replace": "Translated text part 1"}
+  - {"find": "Best Self", "replace": "Translated text part 2"}
+- NEVER leave partial English in a heading. If part of a heading is a word like "Forge", "Power", "Build" — those are tagline words, NOT the brand name. Translate them.
+
 ## LANGUAGE
 - The business is located in a ${detectedLanguage}-speaking area
 ${detectedLanguage !== "English" ? `- TRANSLATE ALL template text to ${detectedLanguage}. This includes:
   - Navigation menu items (Home, About, Contact, etc.)
   - Button text (Learn More, Get Started, Sign Up, etc.)
-  - Section headings (Our Services, About Us, Contact, etc.)
+  - Section headings AND hero headings (Forge Your Best Self, etc.)
   - Taglines and descriptions
   - Footer text
   - ALL body copy and paragraphs
-- Keep the business name "${businessData.name}" as-is (don't translate it)
-- The entire website should read naturally in ${detectedLanguage}` : "- Keep all text in English"}
+  - Words like "Forge", "Power", "Build", "Your", "Best" — these are English words, TRANSLATE them
+- Keep ONLY the business name "${businessData.name}" as-is (don't translate it)
+- The entire website must read 100% naturally in ${detectedLanguage} — zero English words remaining` : "- Keep all text in English"}
 
 ## CONTENT
 - Replace ALL phone numbers with "${businessData.phone || "Contact us"}"
@@ -323,24 +347,74 @@ Return ONLY a JSON array, no other text:
 
   // ── HEADING TAG CLEANUP ──
   // Handle AI replacements that failed because text is split across HTML tags
-  const headingRegex = /(<(?:h[1-6]|p|span|a|div)[^>]*>)\s*([\s\S]*?)\s*(<\/(?:h[1-6]|p|span|a|div)>)/gi;
-  let headingMatch;
-  const resultForHeadings = result;
-  while ((headingMatch = headingRegex.exec(resultForHeadings)) !== null) {
-    const fullEl = headingMatch[0];
-    const innerHtml = headingMatch[2];
-    // Get plain text version
+  // e.g. "Forge Your<br/><span>Best Self</span>" — AI tried to replace "Forge Your"
+  // but it's a raw text node mixed with tags
+
+  // Pass 1: Try direct inner-HTML replacements
+  const elRegex = /(<(?:h[1-6]|p|span|a|div)[^>]*>)\s*([\s\S]*?)\s*(<\/(?:h[1-6]|p|span|a|div)>)/gi;
+  let elMatch;
+  const resultForEls = result;
+  while ((elMatch = elRegex.exec(resultForEls)) !== null) {
+    const fullEl = elMatch[0];
+    const innerHtml = elMatch[2];
     const plainText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
     for (const { find, replace } of replacements) {
       if (!find || !replace || find === replace) continue;
       if (plainText.includes(find) && !fullEl.includes(replace)) {
-        // The AI wanted to replace this text but couldn't because of HTML tags
-        // Try replacing in the inner HTML directly
         const newInner = innerHtml.replace(find, replace);
         if (newInner !== innerHtml) {
-          result = result.split(fullEl).join(headingMatch[1] + newInner + headingMatch[3]);
+          result = result.split(fullEl).join(elMatch[1] + newInner + elMatch[3]);
           console.log("[ai-engine] Tag cleanup:", find, "->", replace);
+        }
+      }
+    }
+  }
+
+  // Pass 2: For h1-h3 headings specifically, if the plain text still contains
+  // words from the original template brand's tagline, replace the entire
+  // heading content. This catches "Forge Your<br/><span>snagu</span>" cases.
+  const heroHeadingRegex = /(<h[1-3][^>]*>)([\s\S]*?)(<\/h[1-3]>)/gi;
+  let heroMatch;
+  const resultForHero = result;
+  while ((heroMatch = heroHeadingRegex.exec(resultForHero)) !== null) {
+    const openTag = heroMatch[1];
+    const innerHtml = heroMatch[2];
+    const closeTag = heroMatch[3];
+    const plainText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+    // Check if this heading has mixed languages (some English words remaining)
+    // by looking for common English tagline words that should have been translated
+    if (detectedLanguage !== "English") {
+      const englishWords = plainText.match(/\b(forge|your|best|self|build|power|grow|start|free|trial|learn|more|discover|welcome|about|join|get|our|the|with|for|and)\b/gi);
+      if (englishWords && englishWords.length >= 2) {
+        // This heading still has English words — find an AI replacement that was meant for it
+        for (const { find, replace } of replacements) {
+          if (!find || !replace) continue;
+          // Check if the find string's words overlap with this heading's plain text
+          const findWords = find.toLowerCase().split(/\s+/);
+          const headingWords = plainText.toLowerCase().split(/\s+/);
+          const overlap = findWords.filter(w => headingWords.includes(w));
+          if (overlap.length >= 2) {
+            // This replacement was meant for this heading — replace entire content
+            // Preserve any <span> styling by wrapping the replacement
+            const spanMatch = innerHtml.match(/<span([^>]*)>/);
+            let newContent: string;
+            if (spanMatch) {
+              // Split replacement into two parts, wrap second in the span
+              const words = replace.split(" ");
+              const mid = Math.ceil(words.length / 2);
+              const part1 = words.slice(0, mid).join(" ");
+              const part2 = words.slice(mid).join(" ");
+              newContent = `${part1}<br/><span${spanMatch[1]}>${part2}</span>`;
+            } else {
+              newContent = replace;
+            }
+            const original = `${openTag}${innerHtml}${closeTag}`;
+            result = result.split(original).join(`${openTag}${newContent}${closeTag}`);
+            console.log("[ai-engine] Hero heading replaced:", plainText, "->", replace);
+            break;
+          }
         }
       }
     }
