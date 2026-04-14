@@ -227,35 +227,78 @@ Return ONLY a JSON array, no other text:
     }
   }
 
-  // Smart brand name detection and replacement
+  // ── BRAND DETECTION ──
+  // Extract the template's brand name from <title>
   const titleMatch = result.match(/<title>([^<]+)<\/title>/i);
+  let templateBrand = "";
   if (titleMatch) {
-    const titleText = titleMatch[1];
-    const brandMatch = titleText.match(/^([A-Za-z0-9\s]+?)[\s]*[—\-–|:]/);
+    const titleText = titleMatch[1].trim();
+    // Try "Brand — tagline" or "Brand | tagline" or "Brand - tagline"
+    const brandMatch = titleText.match(/^([A-Za-z0-9]+(?:\s?[A-Za-z0-9]+)?)\s*[—\-–|:,]/);
     if (brandMatch) {
-      const templateBrand = brandMatch[1].trim();
-      if (templateBrand && templateBrand !== businessData.name) {
-        result = result.split(templateBrand).join(businessData.name);
-        console.log("[ai-engine] Brand replacement:", templateBrand, "->", businessData.name);
-      }
+      templateBrand = brandMatch[1].trim();
+    } else {
+      // Title might just be the brand name
+      templateBrand = titleText.split(/\s+/).slice(0, 2).join(" ").trim();
     }
   }
 
-  // Handle split-tag brand names: TEXT<span>TEXT</span>
-  const splitBrandRegex2 = /([A-Z]{2,})(<span[^>]*>)([A-Z]{2,})(<\/span>)/g;
-  let splitMatch2;
-  const resultCopy = result;
-  while ((splitMatch2 = splitBrandRegex2.exec(resultCopy)) !== null) {
-    const part1 = splitMatch2[1];
-    const spanOpen = splitMatch2[2];
-    const part2 = splitMatch2[3];
-    const spanClose = splitMatch2[4];
-    const combinedBrand = part1 + part2;
+  if (templateBrand && templateBrand.toLowerCase() !== businessData.name.toLowerCase()) {
+    console.log("[ai-engine] Detected template brand:", templateBrand);
 
-    const titleUpper = (titleMatch?.[1] || "").toUpperCase();
-    if (combinedBrand.length >= 4 && (titleUpper.includes(combinedBrand) || titleUpper.includes(part1))) {
-      const bizWords = businessData.name.toUpperCase().split(" ");
+    // Generate ALL casing variants of the template brand
+    const brandVariants = [
+      templateBrand,                                    // Original: IronForge
+      templateBrand.toUpperCase(),                      // IRONFORGE
+      templateBrand.toLowerCase(),                      // ironforge
+      templateBrand.replace(/([a-z])([A-Z])/g, "$1 $2"), // Iron Forge (camelCase split)
+      templateBrand.replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase(), // IRON FORGE
+    ];
+
+    // Also try without spaces
+    const noSpace = templateBrand.replace(/\s+/g, "");
+    if (noSpace !== templateBrand) {
+      brandVariants.push(noSpace, noSpace.toUpperCase(), noSpace.toLowerCase());
+    }
+
+    const uniqueVariants = [...new Set(brandVariants)].filter(v => v.length >= 3);
+
+    // Replace each variant with the corresponding casing of the business name
+    for (const variant of uniqueVariants) {
+      if (!result.includes(variant)) continue;
+      let replacement: string;
+      if (variant === variant.toUpperCase()) {
+        replacement = businessData.name.toUpperCase();
+      } else if (variant === variant.toLowerCase()) {
+        replacement = businessData.name.toLowerCase();
+      } else {
+        replacement = businessData.name;
+      }
+      result = result.split(variant).join(replacement);
+      console.log("[ai-engine] Brand variant:", variant, "->", replacement);
+    }
+  }
+
+  // ── SPLIT-TAG BRAND NAMES ──
+  // Handles: Iron<span>Forge</span>, IRON<span>FORGE</span>, etc.
+  const splitBrandRegex = /([A-Za-z]{2,})(<(?:span|strong|em|b)[^>]*>)([A-Za-z]{2,})(<\/(?:span|strong|em|b)>)/gi;
+  let splitMatch;
+  const resultForSplit = result;
+  while ((splitMatch = splitBrandRegex.exec(resultForSplit)) !== null) {
+    const part1 = splitMatch[1];
+    const tagOpen = splitMatch[2];
+    const part2 = splitMatch[3];
+    const tagClose = splitMatch[4];
+    const combined = (part1 + part2).toLowerCase();
+
+    // Check if this looks like the brand
+    const isBrand = (templateBrand && combined === templateBrand.replace(/\s+/g, "").toLowerCase()) ||
+      (titleMatch && titleMatch[1].toLowerCase().includes(combined));
+
+    if (isBrand) {
+      const bizWords = businessData.name.split(" ");
       let newPart1: string, newPart2: string;
+
       if (bizWords.length >= 2) {
         newPart1 = bizWords[0];
         newPart2 = bizWords.slice(1).join(" ");
@@ -264,30 +307,40 @@ Return ONLY a JSON array, no other text:
         newPart1 = bizWords[0].slice(0, mid);
         newPart2 = bizWords[0].slice(mid);
       }
-      const original = splitMatch2[0];
-      const replacement = `${newPart1}${spanOpen}${newPart2}${spanClose}`;
+
+      // Match the casing of the original
+      if (part1 === part1.toUpperCase()) {
+        newPart1 = newPart1.toUpperCase();
+        newPart2 = newPart2.toUpperCase();
+      }
+
+      const original = splitMatch[0];
+      const replacement = `${newPart1}${tagOpen}${newPart2}${tagClose}`;
       result = result.split(original).join(replacement);
-      console.log("[ai-engine] Split brand fix:", original, "->", replacement);
+      console.log("[ai-engine] Split brand:", original, "->", replacement);
     }
   }
 
-  // Handle headings with inner HTML tags
-  const headingRegex = /(<h[1-6][^>]*>)\s*([\s\S]*?)\s*(<\/h[1-6]>)/gi;
+  // ── HEADING TAG CLEANUP ──
+  // Handle AI replacements that failed because text is split across HTML tags
+  const headingRegex = /(<(?:h[1-6]|p|span|a|div)[^>]*>)\s*([\s\S]*?)\s*(<\/(?:h[1-6]|p|span|a|div)>)/gi;
   let headingMatch;
   const resultForHeadings = result;
   while ((headingMatch = headingRegex.exec(resultForHeadings)) !== null) {
-    const fullHeading = headingMatch[0];
+    const fullEl = headingMatch[0];
     const innerHtml = headingMatch[2];
-    const headingText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    // Get plain text version
+    const plainText = innerHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
     for (const { find, replace } of replacements) {
-      if (find && replace && headingText.includes(find) && !fullHeading.includes(replace)) {
+      if (!find || !replace || find === replace) continue;
+      if (plainText.includes(find) && !fullEl.includes(replace)) {
+        // The AI wanted to replace this text but couldn't because of HTML tags
+        // Try replacing in the inner HTML directly
         const newInner = innerHtml.replace(find, replace);
         if (newInner !== innerHtml) {
-          result = result.split(fullHeading).join(
-            headingMatch[1] + newInner + headingMatch[3]
-          );
-          console.log("[ai-engine] Heading fix:", find, "->", replace);
+          result = result.split(fullEl).join(headingMatch[1] + newInner + headingMatch[3]);
+          console.log("[ai-engine] Tag cleanup:", find, "->", replace);
         }
       }
     }
